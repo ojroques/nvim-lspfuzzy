@@ -1,3 +1,7 @@
+" nvim-lspfuzzy
+" By Olivier Roques
+" github.com/ojroques
+
 if exists('g:loaded_lspfuzzy')
   finish
 endif
