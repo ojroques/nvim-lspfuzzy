@@ -4,7 +4,7 @@
 
 -------------------- ALIASES -------------------------------
 local vim = vim
-local api, cmd, fn = vim.api, vim.cmd, vim.fn
+local cmd, fn, g = vim.cmd, vim.fn, vim.g
 local lsp = require 'vim.lsp'
 
 -------------------- OPTIONS -------------------------------
@@ -42,13 +42,13 @@ local function jump(entry)
 end
 
 local function fzf(source)
-  if not api.nvim_get_var('loaded_fzf') then
+  if not g.loaded_fzf then
     echo('WarningMsg', 'FZF is not loaded.')
     return
   end
   local fzf_opts = opts.fzf_options
   if not fzf_opts or vim.tbl_isempty(fzf_opts) then
-    if fn.exists('*fzf#vim#with_preview') then
+    if fn.exists('*fzf#vim#with_preview') ~= 0 then
       fzf_opts = fn['fzf#vim#with_preview']().options
     end
   end
