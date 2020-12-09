@@ -3,7 +3,6 @@
 -- github.com/ojroques
 
 -------------------- ALIASES -------------------------------
-local vim = vim
 local cmd, fn, g = vim.cmd, vim.fn, vim.g
 local lsp = require 'vim.lsp'
 
@@ -20,6 +19,12 @@ local function echo(hlgroup, msg)
   cmd('echohl ' .. hlgroup)
   cmd('echo "lspfuzzy: ' .. msg .. '"')
   cmd('echohl None')
+end
+
+local function extend_start(tbl, values)
+  for i, _ in ipairs(values) do
+    table.insert(tbl, 1, values[#values + 1 - i])
+  end
 end
 
 -------------------- FZF FUNCTIONS -------------------------
@@ -49,7 +54,9 @@ local function fzf(source)
   local fzf_opts = opts.fzf_options
   if not fzf_opts or vim.tbl_isempty(fzf_opts) then
     if fn.exists('*fzf#vim#with_preview') ~= 0 then
+      local extra_opts = {'--delimiter', ':', '--preview-window', '+{2}-/2'}
       fzf_opts = fn['fzf#vim#with_preview']().options
+      extend_start(fzf_opts, extra_opts)
     end
   end
   local fzf_opts_wrap = fn['fzf#wrap']({source = source, options = fzf_opts})
@@ -121,7 +128,7 @@ end
 local function setup(user_opts)
   opts = vim.tbl_extend('keep', user_opts, opts)
   local methods = opts.methods
-  if opts.methods == 'all' then
+  if methods == 'all' then
     methods = vim.tbl_keys(handlers)
   end
   vim.tbl_map(set_handler, methods)
