@@ -9,8 +9,10 @@ local lsp = require 'vim.lsp'
 
 -------------------- OPTIONS -------------------------------
 local opts = {
-  methods = 'all',  -- either 'all' or a list of methods
-  fzf_opts = {},    -- options forwarded to FZF
+  methods = 'all',        -- either 'all' or a list of methods
+  fzf_options = {},       -- options passed to FZF
+  fzf_modifier = ':~:.',  -- format FZF entries, see |filename-modifiers|
+  fzf_trim = true,        -- trim FZF entries
 }
 
 -------------------- HELPERS -------------------------------
@@ -22,9 +24,9 @@ end
 
 -------------------- FZF FUNCTIONS -------------------------
 local function item_to_entry(item)
-  local filename = fn.fnamemodify(item['filename'], ':~:.')
-  local text = vim.trim(item['text'])
-  return filename .. ':' .. item['lnum'] .. ':' .. item['col'] .. ': ' .. text
+  local filename = fn.fnamemodify(item.filename, opts.fzf_modifier)
+  local text = opts.fzf_trim and vim.trim(item.text) or item.text
+  return filename .. ':' .. item.lnum .. ':' .. item.col .. ': ' .. text
 end
 
 local function jump(entry)
