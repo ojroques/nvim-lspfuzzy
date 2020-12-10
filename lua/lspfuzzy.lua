@@ -21,29 +21,42 @@ local function echo(hlgroup, msg)
   cmd('echohl None')
 end
 
-local function extend_start(tbl, values)
-  for i, _ in ipairs(values) do
-    table.insert(tbl, 1, values[#values + 1 - i])
-  end
-end
-
--------------------- FZF FUNCTIONS -------------------------
-local function item_to_entry(item)
+local function lsp_to_fzf(item)
   local filename = fn.fnamemodify(item.filename, opts.fzf_modifier)
   local text = opts.fzf_trim and vim.trim(item.text) or item.text
   return filename .. ':' .. item.lnum .. ':' .. item.col .. ': ' .. text
 end
 
-local function jump(entry)
-  if not entry or entry == '' then return end
+local function fzf_to_lsp(entry)
   local split = vim.split(entry, ':')
   local uri = vim.uri_from_fname(fn.fnamemodify(split[1], ':p'))
   local line = tonumber(split[2]) - 1
   local column = tonumber(split[3]) - 1
   local position = {line = line, character = column}
   local range = {start = position, ['end'] = position}
-  local location = {uri = uri, range = range}
-  lsp.util.jump_to_location(location)
+  return {uri = uri, range = range}
+end
+
+-------------------- FZF FUNCTIONS -------------------------
+local fzf_actions = {
+  ['ctrl-t'] = 'tabedit',  -- open in a new tab
+  ['ctrl-v'] = 'vsplit',   -- open in a vertical split
+  ['ctrl-x'] = 'split',    -- open in a horizontal split
+}
+
+local function jump(entries)
+  if not entries or #entries < 2 then return end
+  local key = table.remove(entries, 1)
+  local locations = vim.tbl_map(fzf_to_lsp, entries)
+  if fzf_actions[key] ~= nil then
+    cmd(fzf_actions[key])
+  end
+  if #locations > 1 then
+    lsp.util.set_qflist(lsp.util.locations_to_items(locations))
+    cmd 'copen'
+    cmd 'wincmd p'
+  end
+  lsp.util.jump_to_location(locations[1])
 end
 
 local function fzf(source)
@@ -53,15 +66,22 @@ local function fzf(source)
   end
   local fzf_opts = opts.fzf_options
   if not fzf_opts or vim.tbl_isempty(fzf_opts) then
+    fzf_opts = {
+      '--ansi',
+      '--bind', 'ctrl-a:select-all,ctrl-d:deselect-all',
+      '--expect', table.concat(vim.tbl_keys(fzf_actions), ','),
+      '--multi',
+    }
     if fn.exists('*fzf#vim#with_preview') ~= 0 then
-      local extra_opts = {'--delimiter', ':', '--preview-window', '+{2}-/2'}
-      fzf_opts = fn['fzf#vim#with_preview']().options
-      extend_start(fzf_opts, extra_opts)
+      vim.list_extend(fzf_opts, {
+        '--delimiter', ':',
+        '--preview-window', '+{2}-/2'
+      })
+      vim.list_extend(fzf_opts, fn['fzf#vim#with_preview']().options)
     end
   end
   local fzf_opts_wrap = fn['fzf#wrap']({source = source, options = fzf_opts})
-  fzf_opts_wrap['sink*'] = nil
-  fzf_opts_wrap['sink'] = jump
+  fzf_opts_wrap['sink*'] = jump
   fn['fzf#run'](fzf_opts_wrap)
 end
 
@@ -69,7 +89,7 @@ end
 local function symbol_handler(_, _, result, _, bufnr)
   if not result or vim.tbl_isempty(result) then return end
   local items = lsp.util.symbols_to_items(result, bufnr)
-  local source = vim.tbl_map(item_to_entry, items)
+  local source = vim.tbl_map(lsp_to_fzf, items)
   fzf(source)
 end
 
@@ -84,7 +104,7 @@ local function location_handler(_, _, result)
     return
   end
   local items = lsp.util.locations_to_items(result)
-  local source = vim.tbl_map(item_to_entry, items)
+  local source = vim.tbl_map(lsp_to_fzf, items)
   fzf(source)
 end
 
@@ -103,7 +123,7 @@ local function make_call_hierarchy_handler(direction)
         })
       end
     end
-    local source = vim.tbl_map(item_to_entry, items)
+    local source = vim.tbl_map(lsp_to_fzf, items)
     fzf(source)
   end
 end
