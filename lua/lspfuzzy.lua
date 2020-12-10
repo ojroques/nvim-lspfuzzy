@@ -8,7 +8,7 @@ local lsp = require 'vim.lsp'
 
 -------------------- OPTIONS -------------------------------
 local opts = {
-  methods = 'all',        -- either 'all' or a list of methods
+  methods = 'all',        -- either 'all' or a list of LSP methods
   fzf_options = {},       -- options passed to FZF
   fzf_modifier = ':~:.',  -- format FZF entries, see |filename-modifiers|
   fzf_trim = true,        -- trim FZF entries
