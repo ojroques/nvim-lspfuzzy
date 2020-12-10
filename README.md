@@ -9,6 +9,8 @@ you don't need to change any of your LSP mappings. It's also **small**
 
 The plugin is compatible only with Neovim 0.5+.
 
+![demo](./demo.gif)
+
 ## Installation
 
 #### With Packer
