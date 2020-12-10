@@ -72,7 +72,7 @@ local function fzf(source)
       '--expect', table.concat(vim.tbl_keys(fzf_actions), ','),
       '--multi',
     }
-    if fn.exists('*fzf#vim#with_preview') ~= 0 then
+    if pcall(fn['fzf#vim#with_preview']) then
       vim.list_extend(fzf_opts, {
         '--delimiter', ':',
         '--preview-window', '+{2}-/2'
