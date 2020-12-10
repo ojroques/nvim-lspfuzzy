@@ -1,10 +1,11 @@
 # nvim-lspfuzzy
 
-This plugin makes Neovim LSP use [FZF](https://github.com/junegunn/fzf) to
-display results and jump around the code.
+This plugin makes the Neovim LSP client use
+[FZF](https://github.com/junegunn/fzf) to display results and jump around
+the code.
 
-It works by redefining LSP handlers to custom ones that call FZF, therefore
-you don't need to change any of your LSP mappings. It's also **small**
+It works by redefining LSP handlers to custom ones that call FZF. Therefore
+there is no need to change any of your LSP mappings. It's also **small**
 (currently sitting at ~160 LOC) and **written entirely in Lua**.
 
 The plugin is compatible only with Neovim 0.5+.
@@ -21,7 +22,7 @@ return require('packer').startup(function()
   use {
     'ojroques/nvim-lspfuzzy'
     requires = {
-      'junegunn/fzf',
+      {'junegunn/fzf'},
       {'junegunn/fzf.vim', opt = true}  -- to enable preview (optional)
     }
   }
@@ -54,10 +55,10 @@ Simply add this line to your *init.lua*:
 require('lspfuzzy').setup {}
 ```
 
-If you're using a *.vimrc* or *init.vim*, you need to enclose the line in a lua
-block:
+If you're using a *.vimrc* or *init.vim*, you need to enclose that line in a
+lua block:
 ```vim
-lua <<EOF
+lua << EOF
 require('lspfuzzy').setup {}
 EOF
 ```
