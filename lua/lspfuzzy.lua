@@ -48,10 +48,10 @@ local function jump(entries)
   if not entries or #entries < 2 then return end
   local key = table.remove(entries, 1)
   local locations = vim.tbl_map(fzf_to_lsp, entries)
-  if fzf_actions[key] ~= nil then
+  if fzf_actions[key] ~= nil then  -- user has used ctrl-t/ctrl-v/ctrl-x
     cmd(fzf_actions[key])
   end
-  if #locations > 1 then
+  if #locations > 1 then  -- use quickfix list to store remaining locations
     lsp.util.set_qflist(lsp.util.locations_to_items(locations))
     cmd 'copen'
     cmd 'wincmd p'
@@ -72,7 +72,7 @@ local function fzf(source)
       '--expect', table.concat(vim.tbl_keys(fzf_actions), ','),
       '--multi',
     }
-    if pcall(fn['fzf#vim#with_preview']) then
+    if pcall(fn['fzf#vim#with_preview']) then  -- enable preview with fzf.vim
       vim.list_extend(fzf_opts, {
         '--delimiter', ':',
         '--preview-window', '+{2}-/2'
@@ -81,7 +81,7 @@ local function fzf(source)
     end
   end
   local fzf_opts_wrap = fn['fzf#wrap']({source = source, options = fzf_opts})
-  fzf_opts_wrap['sink*'] = jump
+  fzf_opts_wrap['sink*'] = jump  -- 'sink*' needs to be assigned outside wrap()
   fn['fzf#run'](fzf_opts_wrap)
 end
 
@@ -95,11 +95,11 @@ end
 
 local function location_handler(_, _, result)
   if not result or vim.tbl_isempty(result) then return end
-  if not vim.tbl_islist(result) then
+  if not vim.tbl_islist(result) then  -- jump immediately if not a list
     lsp.util.jump_to_location(result)
     return
   end
-  if #result == 1 then
+  if #result == 1 then  -- jump immediately if there is only one location
     lsp.util.jump_to_location(result[1])
     return
   end
