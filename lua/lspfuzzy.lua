@@ -45,22 +45,18 @@ end
 -------------------- FZF FUNCTIONS -------------------------
 local function jump(entries)
   if not entries or #entries < 2 then return end
-
   local key = table.remove(entries, 1)
   local locations = vim.tbl_map(fzf_to_lsp, entries)
-
   -- A FZF action was used
   if opts.fzf_action[key] then
     cmd(opts.fzf_action[key])
   end
-
   -- Use the quickfix list to store remaining locations
   if #locations > 1 then
     lsp.util.set_qflist(lsp.util.locations_to_items(locations))
     cmd 'copen'
     cmd 'wincmd p'
   end
-
   lsp.util.jump_to_location(locations[1])
 end
 
@@ -69,9 +65,7 @@ local function fzf(source)
     echo('WarningMsg', 'FZF is not loaded.')
     return
   end
-
   local fzf_opts = opts.fzf_options
-
   -- Set up default FZF options
   if not fzf_opts or vim.tbl_isempty(fzf_opts) then
     fzf_opts = {
@@ -80,9 +74,8 @@ local function fzf(source)
       '--expect', table.concat(vim.tbl_keys(opts.fzf_action), ','),
       '--multi',
     }
-
     -- Enable preview with fzf.vim
-    if pcall(fn['fzf#vim#with_preview']) then
+    if g.loaded_fzf_vim then
       vim.list_extend(fzf_opts, {
         '--delimiter', ':',
         '--preview-window', '+{2}-/2'
@@ -90,7 +83,6 @@ local function fzf(source)
       vim.list_extend(fzf_opts, fn['fzf#vim#with_preview']().options)
     end
   end
-
   local fzf_opts_wrap = fn['fzf#wrap']({source = source, options = fzf_opts})
   fzf_opts_wrap['sink*'] = jump  -- 'sink*' needs to be assigned outside wrap()
   fn['fzf#run'](fzf_opts_wrap)
@@ -106,19 +98,16 @@ end
 
 local function location_handler(_, _, result)
   if not result or vim.tbl_isempty(result) then return end
-
   -- Jump immediately if not a list
   if not vim.tbl_islist(result) then
     lsp.util.jump_to_location(result)
     return
   end
-
   -- Jump immediately if there is only one location
   if #result == 1 then
     lsp.util.jump_to_location(result[1])
     return
   end
-
   local items = lsp.util.locations_to_items(result)
   local source = vim.tbl_map(lsp_to_fzf, items)
   fzf(source)
@@ -127,7 +116,6 @@ end
 local function make_call_hierarchy_handler(direction)
   return function(_, _, result)
     if not result or vim.tbl_isempty(result) then return end
-
     local items = {}
     for _, call_hierarchy_call in pairs(result) do
       local call_hierarchy_item = call_hierarchy_call[direction]
@@ -140,7 +128,6 @@ local function make_call_hierarchy_handler(direction)
         })
       end
     end
-
     local source = vim.tbl_map(lsp_to_fzf, items)
     fzf(source)
   end
@@ -159,25 +146,18 @@ local handlers = {
   ['workspace/symbol'] = symbol_handler,
 }
 
-local function set_handler(method)
-  lsp.handlers[method] = handlers[method]
-end
-
 local function setup(user_opts)
+  local set_handler = function(m) lsp.handlers[m] = handlers[m] end
   -- Use the FZF 'action' option instead of default commands
   if g.fzf_action then
     opts.fzf_action = g.fzf_action
   end
-
   opts = vim.tbl_extend('keep', user_opts, opts)
-  local methods = opts.methods
-
   -- Redefine all LSP handlers
-  if methods == 'all' then
-    methods = vim.tbl_keys(handlers)
+  if opts.methods == 'all' then
+    opts.methods = vim.tbl_keys(handlers)
   end
-
-  vim.tbl_map(set_handler, methods)
+  vim.tbl_map(set_handler, opts.methods)
 end
 
 ------------------------------------------------------------
