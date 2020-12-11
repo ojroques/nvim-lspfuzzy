@@ -8,10 +8,15 @@ local lsp = require 'vim.lsp'
 
 -------------------- OPTIONS -------------------------------
 local opts = {
-  methods = 'all',        -- either 'all' or a list of LSP methods
-  fzf_options = {},       -- options passed to FZF
-  fzf_modifier = ':~:.',  -- format FZF entries, see |filename-modifiers|
-  fzf_trim = true,        -- trim FZF entries
+  methods = 'all',         -- either 'all' or a list of LSP methods
+  fzf_options = {},        -- options passed to FZF
+  fzf_action = {           -- additional FZF commands
+    ['ctrl-t'] = 'tabedit',  -- open in a new tab
+    ['ctrl-v'] = 'vsplit',   -- open in a vertical split
+    ['ctrl-x'] = 'split',    -- open in a horizontal split
+  },
+  fzf_modifier = ':~:.',   -- format FZF entries, see |filename-modifiers|
+  fzf_trim = true,         -- trim FZF entries
 }
 
 -------------------- HELPERS -------------------------------
@@ -38,18 +43,12 @@ local function fzf_to_lsp(entry)
 end
 
 -------------------- FZF FUNCTIONS -------------------------
-local fzf_actions = {
-  ['ctrl-t'] = 'tabedit',  -- open in a new tab
-  ['ctrl-v'] = 'vsplit',   -- open in a vertical split
-  ['ctrl-x'] = 'split',    -- open in a horizontal split
-}
-
 local function jump(entries)
   if not entries or #entries < 2 then return end
   local key = table.remove(entries, 1)
   local locations = vim.tbl_map(fzf_to_lsp, entries)
-  if fzf_actions[key] ~= nil then  -- user has used ctrl-t/ctrl-v/ctrl-x
-    cmd(fzf_actions[key])
+  if opts.fzf_action[key] then  -- a FZF action was used
+    cmd(opts.fzf_action[key])
   end
   if #locations > 1 then  -- use quickfix list to store remaining locations
     lsp.util.set_qflist(lsp.util.locations_to_items(locations))
@@ -69,7 +68,7 @@ local function fzf(source)
     fzf_opts = {
       '--ansi',
       '--bind', 'ctrl-a:select-all,ctrl-d:deselect-all',
-      '--expect', table.concat(vim.tbl_keys(fzf_actions), ','),
+      '--expect', table.concat(vim.tbl_keys(opts.fzf_action), ','),
       '--multi',
     }
     if pcall(fn['fzf#vim#with_preview']) then  -- enable preview with fzf.vim
@@ -146,6 +145,9 @@ local function set_handler(method)
 end
 
 local function setup(user_opts)
+  if g.fzf_action then  -- use the FZF action option instead of defaults
+    opts.fzf_action = g.fzf_action
+  end
   opts = vim.tbl_extend('keep', user_opts, opts)
   local methods = opts.methods
   if methods == 'all' then
