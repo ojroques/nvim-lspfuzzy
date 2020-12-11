@@ -4,7 +4,7 @@ This plugin makes the Neovim LSP client use
 [FZF](https://github.com/junegunn/fzf) to display results and jump around
 the code.
 
-It works by redefining LSP handlers to custom ones that call FZF. Therefore
+It works by redefining LSP handlers so that they call FZF. Therefore
 there is no need to change any of your LSP mappings. It's also **small**
 (currently sitting at ~160 LOC) and **written entirely in Lua**.
 
@@ -23,7 +23,7 @@ return require('packer').startup(function()
     'ojroques/nvim-lspfuzzy'
     requires = {
       {'junegunn/fzf'},
-      {'junegunn/fzf.vim', opt = true}  -- to enable preview (optional)
+      {'junegunn/fzf.vim'}  -- to enable preview (optional)
     }
   }
 end)
@@ -63,7 +63,8 @@ require('lspfuzzy').setup {}
 EOF
 ```
 
-You can pass options to the `setup()` function. Here are the default settings:
+You can pass options to the `setup()` function. Here are the available options
+with their default settings:
 ```lua
 require('lspfuzzy').setup {
   methods = 'all',        -- either 'all' or a list of LSP methods (see below)
@@ -100,7 +101,7 @@ workspace/symbol
 ## Troubleshoot
 
 #### Using the `fzf_modifier` option breaks the plugin.
-The plugin uses the filename contained in the FZF entry selected by the user
+The plugin uses the filename embedded in the FZF entry selected by the user
 to jump to the correct location. Therefore it must resolve to a valid path.
 For instance `:.` or `:p` can be used but not `:t`.
 
