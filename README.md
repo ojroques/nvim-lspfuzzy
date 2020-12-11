@@ -68,14 +68,19 @@ You can pass options to the `setup()` function. Here are all available options
 with their default settings:
 ```lua
 require('lspfuzzy').setup {
-  methods = 'all',        -- either 'all' or a list of LSP methods (see below)
-  fzf_options = {},       -- options passed to FZF
-  fzf_modifier = ':~:.',  -- format FZF entries, see |filename-modifiers|
-  fzf_trim = true,        -- trim FZF entries
+  methods = 'all',         -- either 'all' or a list of LSP methods (see below)
+  fzf_options = {},        -- options passed to FZF
+  fzf_action = {           -- additional FZF commands
+    ['ctrl-t'] = 'tabedit',  -- open in a new tab
+    ['ctrl-v'] = 'vsplit',   -- open in a vertical split
+    ['ctrl-x'] = 'split',    -- open in a horizontal split
+  },
+  fzf_modifier = ':~:.',   -- format FZF entries, see |filename-modifiers|
+  fzf_trim = true,         -- trim FZF entries
 }
 ```
 
-Usual shortcuts from FZF are enabled:
+By default the following FZF commands are available:
 * `tab`: select multiple entries
 * `shift+tab`: deselect an entry
 * `ctrl-a`: select all entries
@@ -83,6 +88,13 @@ Usual shortcuts from FZF are enabled:
 * `ctrl-t`: go to location in a new tab
 * `ctrl-v`: go to location in a vertical split
 * `ctrl-x`: go to location in a horizontal split
+
+The active FZF commands are determined as follows:
+1. Commands passed to the `fzf_action` option when calling `setup()` are used
+  first.
+2. Otherwise the plugin will try to load commands from the FZF option
+  `g:fzf_action` if it's set.
+3. Finally the default commands will be used.
 
 ## Supported LSP methods
 You can enable FZF only for a subset of LSP methods by passing them as a list
