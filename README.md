@@ -70,6 +70,11 @@ with their default settings:
 require('lspfuzzy').setup {
   methods = 'all',        -- either 'all' or a list of LSP methods (see below)
   fzf_options = {},       -- options passed to FZF
+  fzf_action = {          -- FZF action default keymaps
+    ['ctrl-t'] = 'tabedit',  -- open in a new tab
+    ['ctrl-v'] = 'vsplit',   -- open in a vertical split
+    ['ctrl-x'] = 'split',    -- open in a horizontal split
+  },
   fzf_modifier = ':~:.',  -- format FZF entries, see |filename-modifiers|
   fzf_trim = true,        -- trim FZF entries
 }
@@ -83,6 +88,9 @@ Usual shortcuts from FZF are enabled:
 * `ctrl-t`: go to location in a new tab
 * `ctrl-v`: go to location in a vertical split
 * `ctrl-x`: go to location in a horizontal split
+
+This plugin will also try to load FZF actions keymaps from `g:fzf_action` if
+it is set at the time `setup` is called.
 
 ## Supported LSP methods
 You can enable FZF only for a subset of LSP methods by passing them as a list
