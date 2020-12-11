@@ -6,7 +6,7 @@ to display results and navigate the code.
 
 It works by redefining LSP handlers so that they call FZF. Therefore
 you don't need to change any of your exising LSP mappings. It's also **small**
-(currently sitting at ~160 LOC) and **written entirely in Lua**.
+(currently at ~160 SLOC) and **written entirely in Lua**.
 
 The plugin is compatible only with Neovim 0.5+.
 
@@ -64,22 +64,6 @@ require('lspfuzzy').setup {}
 EOF
 ```
 
-You can pass options to the `setup()` function. Here are all available options
-with their default settings:
-```lua
-require('lspfuzzy').setup {
-  methods = 'all',         -- either 'all' or a list of LSP methods (see below)
-  fzf_options = {},        -- options passed to FZF
-  fzf_action = {           -- additional FZF commands
-    ['ctrl-t'] = 'tabedit',  -- open in a new tab
-    ['ctrl-v'] = 'vsplit',   -- open in a vertical split
-    ['ctrl-x'] = 'split',    -- open in a horizontal split
-  },
-  fzf_modifier = ':~:.',   -- format FZF entries, see |filename-modifiers|
-  fzf_trim = true,         -- trim FZF entries
-}
-```
-
 By default the following FZF commands are available:
 * `tab`: select multiple entries
 * `shift+tab`: deselect an entry
@@ -89,7 +73,24 @@ By default the following FZF commands are available:
 * `ctrl-v`: go to location in a vertical split
 * `ctrl-x`: go to location in a horizontal split
 
-The active FZF commands are determined as follows:
+## Configuration
+You can pass options to the `setup()` function. Here are all available options
+with their default settings:
+```lua
+require('lspfuzzy').setup {
+  methods = 'all',         -- either 'all' or a list of LSP methods (see below)
+  fzf_options = {},        -- options passed to FZF
+  fzf_action = {           -- additional FZF commands
+    ['ctrl-t'] = 'tabedit',  -- go to location in a new tab
+    ['ctrl-v'] = 'vsplit',   -- go to location in a vertical split
+    ['ctrl-x'] = 'split',    -- go to location in a horizontal split
+  },
+  fzf_modifier = ':~:.',   -- format FZF entries, see |filename-modifiers|
+  fzf_trim = true,         -- trim FZF entries
+}
+```
+
+The FZF commands are determined as follows:
 1. Commands passed to the `fzf_action` option when calling `setup()` are used
   first.
 2. Otherwise the plugin will try to load commands from the FZF option
