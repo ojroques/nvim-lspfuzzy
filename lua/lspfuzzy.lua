@@ -10,10 +10,10 @@ local lsp = require 'vim.lsp'
 local opts = {
   methods = 'all',        -- either 'all' or a list of LSP methods
   fzf_options = {},       -- options passed to FZF
-  fzf_action = {     -- FZF action default keymaps
-    -- ['ctrl-t'] = 'tabedit',  -- open in a new tab
-    -- ['ctrl-v'] = 'vsplit',   -- open in a vertical split
-    -- ['ctrl-x'] = 'split',    -- open in a horizontal split
+  fzf_action = {          -- FZF action default keymaps
+    ['ctrl-t'] = 'tabedit',  -- open in a new tab
+    ['ctrl-v'] = 'vsplit',   -- open in a vertical split
+    ['ctrl-x'] = 'split',    -- open in a horizontal split
   },
   fzf_modifier = ':~:.',  -- format FZF entries, see |filename-modifiers|
   fzf_trim = true,        -- trim FZF entries
@@ -145,8 +145,8 @@ local function set_handler(method)
 end
 
 local function setup(user_opts)
-  if vim.g.fzf_action != nil then
-    opts.fzf_action = vim.g.fzf_action
+  if g.fzf_action ~= nil then
+    opts.fzf_action = g.fzf_action
   end
   opts = vim.tbl_extend('keep', user_opts, opts)
   local methods = opts.methods
