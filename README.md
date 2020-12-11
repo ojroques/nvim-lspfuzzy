@@ -20,11 +20,11 @@ In your *plugins.lua*:
 cmd 'packadd packer.nvim'
 return require('packer').startup(function()
   use {
-    'ojroques/nvim-lspfuzzy'
+    'ojroques/nvim-lspfuzzy',
     requires = {
       {'junegunn/fzf'},
-      {'junegunn/fzf.vim'}  -- to enable preview (optional)
-    }
+      {'junegunn/fzf.vim'},  -- to enable preview (optional)
+    },
   }
 end)
 ```
@@ -36,6 +36,7 @@ call plug#begin()
 Plug 'junegunn/fzf', {'do': {-> fzf#install()}}
 Plug 'junegunn/fzf.vim'  " to enable preview (optional)
 Plug 'ojroques/nvim-lspfuzzy'
+call plug#end()
 ```
 
 #### With Paq
@@ -63,7 +64,7 @@ require('lspfuzzy').setup {}
 EOF
 ```
 
-You can pass options to the `setup()` function. Here are the available options
+You can pass options to the `setup()` function. Here are all available options
 with their default settings:
 ```lua
 require('lspfuzzy').setup {
@@ -98,9 +99,9 @@ textDocument/typeDefinition
 workspace/symbol
 ```
 
-## Troubleshoot
+## Troubleshooting
 
-#### Using the `fzf_modifier` option breaks the plugin.
+#### Using the `fzf_modifier` option breaks the plugin
 The plugin uses the filename embedded in the FZF entry selected by the user
 to jump to the correct location. Therefore it must resolve to a valid path.
 For instance `:.` or `:p` can be used but not `:t`.
