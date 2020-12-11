@@ -65,26 +65,33 @@ local function fzf(source)
     echo('WarningMsg', 'FZF is not loaded.')
     return
   end
-  local fzf_opts = opts.fzf_options
   -- Set up default FZF options
-  if not fzf_opts or vim.tbl_isempty(fzf_opts) then
-    fzf_opts = {
+  if not opts.fzf_options or vim.tbl_isempty(opts.fzf_options) then
+    opts.fzf_options = {
       '--ansi',
       '--bind', 'ctrl-a:select-all,ctrl-d:deselect-all',
-      '--expect', table.concat(vim.tbl_keys(opts.fzf_action), ','),
       '--multi',
     }
+    -- Enable FZF commands
+    if opts.fzf_action and not vim.tbl_isempty(opts.fzf_action) then
+      vim.list_extend(opts.fzf_options, {
+        '--expect', table.concat(vim.tbl_keys(opts.fzf_action), ','),
+      })
+    end
     -- Enable preview with fzf.vim
     if g.loaded_fzf_vim then
-      vim.list_extend(fzf_opts, {
+      vim.list_extend(opts.fzf_options, {
         '--delimiter', ':',
-        '--preview-window', '+{2}-/2'
+        '--preview-window', '+{2}-/2',
       })
-      vim.list_extend(fzf_opts, fn['fzf#vim#with_preview']().options)
+      vim.list_extend(opts.fzf_options, fn['fzf#vim#with_preview']().options)
     end
   end
-  local fzf_opts_wrap = fn['fzf#wrap']({source = source, options = fzf_opts})
-  fzf_opts_wrap['sink*'] = jump  -- 'sink*' needs to be assigned outside wrap()
+  local fzf_opts_wrap = fn['fzf#wrap']({
+    source = source,
+    options = opts.fzf_options,
+  })
+  fzf_opts_wrap['sink*'] = jump  -- 'sink*' needs to be defined outside wrap()
   fn['fzf#run'](fzf_opts_wrap)
 end
 
