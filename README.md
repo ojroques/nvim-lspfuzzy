@@ -89,8 +89,8 @@ Usual shortcuts from FZF are enabled:
 * `ctrl-v`: go to location in a vertical split
 * `ctrl-x`: go to location in a horizontal split
 
-This plugin will also try to load FZF actions keymaps from `g:fzf_action` if
-it is set at the time `setup` is called.
+This plugin will try to load FZF action keymaps from `g:fzf_action` if it's
+set when `setup` is called.
 
 ## Supported LSP methods
 You can enable FZF only for a subset of LSP methods by passing them as a list
