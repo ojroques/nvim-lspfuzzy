@@ -8,15 +8,15 @@ local lsp = require 'vim.lsp'
 
 -------------------- OPTIONS -------------------------------
 local opts = {
-  methods = 'all',        -- either 'all' or a list of LSP methods
-  fzf_options = {},       -- options passed to FZF
-  fzf_action = {          -- FZF action default keymaps
+  methods = 'all',         -- either 'all' or a list of LSP methods
+  fzf_options = {},        -- options passed to FZF
+  fzf_action = {           -- additional FZF commands
     ['ctrl-t'] = 'tabedit',  -- open in a new tab
     ['ctrl-v'] = 'vsplit',   -- open in a vertical split
     ['ctrl-x'] = 'split',    -- open in a horizontal split
   },
-  fzf_modifier = ':~:.',  -- format FZF entries, see |filename-modifiers|
-  fzf_trim = true,        -- trim FZF entries
+  fzf_modifier = ':~:.',   -- format FZF entries, see |filename-modifiers|
+  fzf_trim = true,         -- trim FZF entries
 }
 
 -------------------- HELPERS -------------------------------
@@ -47,7 +47,7 @@ local function jump(entries)
   if not entries or #entries < 2 then return end
   local key = table.remove(entries, 1)
   local locations = vim.tbl_map(fzf_to_lsp, entries)
-  if opts.fzf_action[key] ~= nil then  -- user has used FZF keymaps
+  if opts.fzf_action[key] then  -- a FZF action was used
     cmd(opts.fzf_action[key])
   end
   if #locations > 1 then  -- use quickfix list to store remaining locations
@@ -144,17 +144,10 @@ local function set_handler(method)
   lsp.handlers[method] = handlers[method]
 end
 
-local function load_fzf_opts()
-  fzf_opts = {}
-  -- FZF action keymaps
-  if g.fzf_action ~= nil then
-    fzf_opts.fzf_action = g.fzf_action
-  end
-  return fzf_opts
-end
-
 local function setup(user_opts)
-  opts = vim.tbl_extend('keep', load_fzf_opts(), opts)
+  if g.fzf_action then  -- use the FZF action option instead of defaults
+    opts.fzf_action = g.fzf_action
+  end
   opts = vim.tbl_extend('keep', user_opts, opts)
   local methods = opts.methods
   if methods == 'all' then
