@@ -144,10 +144,17 @@ local function set_handler(method)
   lsp.handlers[method] = handlers[method]
 end
 
-local function setup(user_opts)
+local function load_fzf_opts()
+  fzf_opts = {}
+  -- FZF action keymaps
   if g.fzf_action ~= nil then
-    opts.fzf_action = g.fzf_action
+    fzf_opts.fzf_action = g.fzf_action
   end
+  return fzf_opts
+end
+
+local function setup(user_opts)
+  opts = vim.tbl_extend('keep', load_fzf_opts(), opts)
   opts = vim.tbl_extend('keep', user_opts, opts)
   local methods = opts.methods
   if methods == 'all' then
