@@ -47,7 +47,7 @@ local function jump(entries)
   if not entries or #entries < 2 then return end
   local key = table.remove(entries, 1)
   local locations = vim.tbl_map(fzf_to_lsp, entries)
-  if opts.fzf_action[key] ~= nil then  -- user has used ctrl-t/ctrl-v/ctrl-x
+  if opts.fzf_action[key] ~= nil then  -- user has used FZF keymaps
     cmd(opts.fzf_action[key])
   end
   if #locations > 1 then  -- use quickfix list to store remaining locations
