@@ -1,11 +1,11 @@
 # nvim-lspfuzzy
 
 This plugin makes the Neovim LSP client use
-[FZF](https://github.com/junegunn/fzf) to display results and jump around
-the code.
+[FZF](https://github.com/junegunn/fzf)
+to display results and navigate the code.
 
 It works by redefining LSP handlers so that they call FZF. Therefore
-there is no need to change any of your LSP mappings. It's also **small**
+you don't need to change any of your exising LSP mappings. It's also **small**
 (currently sitting at ~160 LOC) and **written entirely in Lua**.
 
 The plugin is compatible only with Neovim 0.5+.
@@ -40,8 +40,8 @@ call plug#end()
 ```
 
 #### With Paq
-[Paq](https://github.com/savq/paq-nvim) is a lightweight package manager
-written in Lua for Neovim. In your *init.lua*:
+[Paq](https://github.com/savq/paq-nvim) is a lightweight package manager for
+Neovim. In your *init.lua*:
 ```lua
 cmd 'packadd paq-nvim'
 local paq = require('paq-nvim').paq
@@ -80,9 +80,9 @@ Usual shortcuts from FZF are enabled:
 * `shift+tab`: deselect an entry
 * `ctrl-a`: select all entries
 * `ctrl-d`: deselect all entries
-* `ctrl-t`: open location in a new tab
-* `ctrl-v`: open location in a vertical split
-* `ctrl-x`: open location in a horizontal split
+* `ctrl-t`: go to location in a new tab
+* `ctrl-v`: go to location in a vertical split
+* `ctrl-x`: go to location in a horizontal split
 
 ## Supported LSP methods
 You can enable FZF only for a subset of LSP methods by passing them as a list
