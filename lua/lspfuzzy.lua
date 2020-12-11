@@ -6,7 +6,6 @@
 local cmd, fn, g = vim.cmd, vim.fn, vim.g
 local lsp = require 'vim.lsp'
 
-
 -------------------- OPTIONS -------------------------------
 local opts = {
   methods = 'all',         -- either 'all' or a list of LSP methods
@@ -20,7 +19,6 @@ local opts = {
   fzf_trim = true,         -- trim FZF entries
 }
 
-
 -------------------- HELPERS -------------------------------
 local function echo(hlgroup, msg)
   cmd('echohl ' .. hlgroup)
@@ -28,13 +26,11 @@ local function echo(hlgroup, msg)
   cmd('echohl None')
 end
 
-
 local function lsp_to_fzf(item)
   local filename = fn.fnamemodify(item.filename, opts.fzf_modifier)
   local text = opts.fzf_trim and vim.trim(item.text) or item.text
   return filename .. ':' .. item.lnum .. ':' .. item.col .. ': ' .. text
 end
-
 
 local function fzf_to_lsp(entry)
   local split = vim.split(entry, ':')
@@ -45,7 +41,6 @@ local function fzf_to_lsp(entry)
   local range = {start = position, ['end'] = position}
   return {uri = uri, range = range}
 end
-
 
 -------------------- FZF FUNCTIONS -------------------------
 local function jump(entries)
@@ -68,7 +63,6 @@ local function jump(entries)
 
   lsp.util.jump_to_location(locations[1])
 end
-
 
 local function fzf(source)
   if not g.loaded_fzf then
@@ -102,7 +96,6 @@ local function fzf(source)
   fn['fzf#run'](fzf_opts_wrap)
 end
 
-
 -------------------- LSP HANDLERS --------------------------
 local function symbol_handler(_, _, result, _, bufnr)
   if not result or vim.tbl_isempty(result) then return end
@@ -110,7 +103,6 @@ local function symbol_handler(_, _, result, _, bufnr)
   local source = vim.tbl_map(lsp_to_fzf, items)
   fzf(source)
 end
-
 
 local function location_handler(_, _, result)
   if not result or vim.tbl_isempty(result) then return end
@@ -132,13 +124,11 @@ local function location_handler(_, _, result)
   fzf(source)
 end
 
-
 local function make_call_hierarchy_handler(direction)
   return function(_, _, result)
     if not result or vim.tbl_isempty(result) then return end
 
     local items = {}
-
     for _, call_hierarchy_call in pairs(result) do
       local call_hierarchy_item = call_hierarchy_call[direction]
       for _, range in pairs(call_hierarchy_call.fromRanges) do
@@ -156,7 +146,6 @@ local function make_call_hierarchy_handler(direction)
   end
 end
 
-
 -------------------- SETUP ---------------------------------
 local handlers = {
   ['callHierarchy/incomingCalls'] = make_call_hierarchy_handler('from'),
@@ -170,11 +159,9 @@ local handlers = {
   ['workspace/symbol'] = symbol_handler,
 }
 
-
 local function set_handler(method)
   lsp.handlers[method] = handlers[method]
 end
-
 
 local function setup(user_opts)
   -- Use the FZF 'action' option instead of default commands
@@ -192,7 +179,6 @@ local function setup(user_opts)
 
   vim.tbl_map(set_handler, methods)
 end
-
 
 ------------------------------------------------------------
 return {
