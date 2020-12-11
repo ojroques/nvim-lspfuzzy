@@ -35,7 +35,7 @@ In your *.vimrc* or *init.vim*:
 call plug#begin()
 Plug 'junegunn/fzf', {'do': {-> fzf#install()}}
 Plug 'junegunn/fzf.vim'  " to enable preview (optional)
-Plug 'ojroques/nvim-lspfuzzy'
+Plug 'ojroques/nvim-lspfuzzy', {'branch': 'main'}
 call plug#end()
 ```
 
