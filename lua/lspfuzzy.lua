@@ -155,7 +155,7 @@ local handlers = {
 
 local function setup(user_opts)
   local set_handler = function(m) lsp.handlers[m] = handlers[m] end
-  -- Use the FZF 'action' option instead of default commands
+  -- Use commands from the FZF 'action' option instead of defaults
   if g.fzf_action then
     opts.fzf_action = g.fzf_action
   end
