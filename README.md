@@ -114,6 +114,12 @@ workspace/symbol
 
 ## Troubleshooting
 
+#### Preview does not work
+You need to install [fzf.vim](https://github.com/junegunn/fzf.vim) to enable
+previews. If it's already installed, make sure it's up-to-date. The plugin
+checks for the `g:loaded_fzf_vim` which came out
+[in this commit](https://github.com/junegunn/fzf.vim/commit/636a62f140181f80c8e7460a76ae6a5d2c5d97b2).
+
 #### Using the `fzf_modifier` option breaks the plugin
 The plugin uses the filename embedded in the FZF entry selected by the user
 to jump to the correct location. Therefore it must resolve to a valid path.
