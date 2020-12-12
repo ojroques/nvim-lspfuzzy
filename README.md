@@ -79,7 +79,7 @@ with their default settings:
 ```lua
 require('lspfuzzy').setup {
   methods = 'all',         -- either 'all' or a list of LSP methods (see below)
-  fzf_options = {},        -- options passed to FZF
+  fzf_options = {},        -- options passed to FZF (overwrite the embedded default ones)
   fzf_action = {           -- additional FZF commands
     ['ctrl-t'] = 'tabedit',  -- go to location in a new tab
     ['ctrl-v'] = 'vsplit',   -- go to location in a vertical split
