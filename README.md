@@ -6,7 +6,7 @@ to display results and navigate the code.
 
 It works by redefining LSP handlers so that they call FZF. Therefore
 you don't need to change any of your exising LSP mappings. It's also **small**
-(currently at ~160 SLOC) and **written entirely in Lua**.
+(currently at ~210 SLOC) and **written entirely in Lua**.
 
 The plugin is compatible only with Neovim 0.5+.
 
@@ -64,6 +64,9 @@ require('lspfuzzy').setup {}
 EOF
 ```
 
+In addition, the plugin defines the following commands:
+* `:LspDiagnostics`: print all diagnostics of current buffer
+
 By default the following FZF commands are available:
 * <kbd>**tab**</kbd> : select multiple entries
 * <kbd>**shift+tab**</kbd> : deselect an entry
@@ -80,7 +83,7 @@ with their default settings:
 require('lspfuzzy').setup {
   methods = 'all',         -- either 'all' or a list of LSP methods (see below)
   fzf_options = {},        -- options passed to FZF (overwrite the embedded default ones)
-  fzf_action = {           -- additional FZF commands
+  fzf_action = {           -- additional FZF actions
     ['ctrl-t'] = 'tabedit',  -- go to location in a new tab
     ['ctrl-v'] = 'vsplit',   -- go to location in a vertical split
     ['ctrl-x'] = 'split',    -- go to location in a horizontal split
@@ -90,12 +93,12 @@ require('lspfuzzy').setup {
 }
 ```
 
-The FZF commands are determined as follows:
-1. Commands passed to the `fzf_action` option when calling `setup()` are used
+The FZF actions are determined as follows:
+1. Actions passed to the `fzf_action` option when calling `setup()` are used
   first.
-2. Otherwise the plugin will try to load commands from the FZF option
+2. Otherwise the plugin will try to load actions from the FZF option
   `g:fzf_action` if it's set.
-3. Finally the default commands will be used.
+3. Finally the default actions will be used.
 
 ## Supported LSP methods
 You can enable FZF only for a subset of LSP methods by passing them as a list
@@ -103,6 +106,7 @@ to the `methods` option when calling `setup()`. The supported LSP methods are:
 ```
 callHierarchy/incomingCalls
 callHierarchy/outgoingCalls
+textDocument/codeAction
 textDocument/declaration
 textDocument/definition
 textDocument/documentSymbol
