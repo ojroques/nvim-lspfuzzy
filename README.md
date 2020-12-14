@@ -64,10 +64,12 @@ require('lspfuzzy').setup {}
 EOF
 ```
 
-In addition, the plugin defines the following commands:
-* `:LspDiagnostics`: print all diagnostics of current buffer
+In addition, the plugin creates the following commands:
+* `:LspDiagnostics <bufnr>`: list diagnostics from given buffer
+  (`0` for current buffer)
+* `:LspDiagnosticsAll`: list diagnostics from all buffers
 
-By default the following FZF commands are available:
+By default the following FZF actions are available:
 * <kbd>**tab**</kbd> : select multiple entries
 * <kbd>**shift+tab**</kbd> : deselect an entry
 * <kbd>**ctrl-a**</kbd> : select all entries

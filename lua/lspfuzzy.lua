@@ -169,17 +169,17 @@ local function code_action_handler(_, _, actions)
 end
 
 -------------------- COMMANDS ------------------------------
-local function diagnostics()
-  local bufnr = api.nvim_get_current_buf()
-  local diags = lsp.diagnostic.get(bufnr)
+local function diagnostics_cmd(diagnostics)
   local items = {}
-  for _, diag in ipairs(diags) do
-    table.insert(items, {
-      filename = api.nvim_buf_get_name(bufnr),
-      text = diag.message,
-      lnum = diag.range.start.line + 1,
-      col = diag.range.start.character + 1,
-    })
+  for bufnr, diags in pairs(diagnostics) do
+    for _, diag in ipairs(diags) do
+      table.insert(items, {
+        filename = api.nvim_buf_get_name(bufnr),
+        text = diag.message,
+        lnum = diag.range.start.line + 1,
+        col = diag.range.start.character + 1,
+      })
+    end
   end
   local source = vim.tbl_map(lsp_to_fzf, items)
   fzf(source, jump)
@@ -215,6 +215,11 @@ end
 
 ------------------------------------------------------------
 return {
-  diagnostics = diagnostics,
+  diagnostics = function(bufnr)
+    diagnostics_cmd({[bufnr] = lsp.diagnostic.get(bufnr)})
+  end,
+  diagnostics_all = function()
+    diagnostics_cmd(lsp.diagnostic.get_all())
+  end,
   setup = setup,
 }
