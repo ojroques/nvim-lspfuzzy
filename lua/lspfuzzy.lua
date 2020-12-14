@@ -2,9 +2,10 @@
 -- By Olivier Roques
 -- github.com/ojroques
 
--------------------- ALIASES -------------------------------
-local cmd, fn, g = vim.cmd, vim.fn, vim.g
+-------------------- VARIABLES -----------------------------
+local api, cmd, fn, g, vim = vim.api, vim.cmd, vim.fn, vim.g, vim
 local lsp = require 'vim.lsp'
+local tbl_actions = nil  -- a table to hold all available code actions
 
 -------------------- OPTIONS -------------------------------
 local opts = {
@@ -21,15 +22,15 @@ local opts = {
 
 -------------------- HELPERS -------------------------------
 local function echo(hlgroup, msg)
-  cmd('echohl ' .. hlgroup)
-  cmd('echo "lspfuzzy: ' .. msg .. '"')
+  cmd(string.format('echohl %s', hlgroup))
+  cmd(string.format('echo "lspfuzzy: %s"', msg))
   cmd('echohl None')
 end
 
 local function lsp_to_fzf(item)
   local filename = fn.fnamemodify(item.filename, opts.fzf_modifier)
   local text = opts.fzf_trim and vim.trim(item.text) or item.text
-  return filename .. ':' .. item.lnum .. ':' .. item.col .. ': ' .. text
+  return string.format('%s:%s:%s: %s', filename, item.lnum, item.col, text)
 end
 
 local function fzf_to_lsp(entry)
@@ -60,7 +61,22 @@ local function jump(entries)
   lsp.util.jump_to_location(locations[1])
 end
 
-local function fzf(source)
+local function apply_action(entries)
+  if not entries or #entries < 2 then return end
+  table.remove(entries, 1)
+  for _, entry in ipairs(entries) do
+    local action = tbl_actions[entry]
+    if action.edit then
+      lsp.util.apply_workspace_edit(action.edit)
+    elseif type(action.command) == "table" then
+      lsp.buf.execute_command(action.command)
+    else
+      lsp.buf.execute_command(action)
+    end
+  end
+end
+
+local function fzf(source, sink)
   if not g.loaded_fzf then
     echo('WarningMsg', 'FZF is not loaded.')
     return
@@ -91,7 +107,7 @@ local function fzf(source)
     source = source,
     options = opts.fzf_options,
   })
-  fzf_opts_wrap['sink*'] = jump  -- 'sink*' needs to be defined outside wrap()
+  fzf_opts_wrap['sink*'] = sink  -- 'sink*' needs to be defined outside wrap()
   fn['fzf#run'](fzf_opts_wrap)
 end
 
@@ -100,7 +116,7 @@ local function symbol_handler(_, _, result, _, bufnr)
   if not result or vim.tbl_isempty(result) then return end
   local items = lsp.util.symbols_to_items(result, bufnr)
   local source = vim.tbl_map(lsp_to_fzf, items)
-  fzf(source)
+  fzf(source, jump)
 end
 
 local function location_handler(_, _, result)
@@ -117,7 +133,7 @@ local function location_handler(_, _, result)
   end
   local items = lsp.util.locations_to_items(result)
   local source = vim.tbl_map(lsp_to_fzf, items)
-  fzf(source)
+  fzf(source, jump)
 end
 
 local function make_call_hierarchy_handler(direction)
@@ -136,14 +152,44 @@ local function make_call_hierarchy_handler(direction)
       end
     end
     local source = vim.tbl_map(lsp_to_fzf, items)
-    fzf(source)
+    fzf(source, jump)
   end
+end
+
+local function code_action_handler(_, _, actions)
+  if not actions or vim.tbl_isempty(actions) then return end
+  local choices = {}
+  tbl_actions = {}
+  for i, action in ipairs(actions) do
+    local text = string.format("%d. %s", i, action.title)
+    table.insert(choices, text)
+    tbl_actions[text] = action
+  end
+  fzf(choices, apply_action)
+end
+
+-------------------- COMMANDS ------------------------------
+local function diagnostics()
+  local bufnr = api.nvim_get_current_buf()
+  local diags = lsp.diagnostic.get(bufnr)
+  local items = {}
+  for _, diag in ipairs(diags) do
+    table.insert(items, {
+      filename = api.nvim_buf_get_name(bufnr),
+      text = diag.message,
+      lnum = diag.range.start.line + 1,
+      col = diag.range.start.character + 1,
+    })
+  end
+  local source = vim.tbl_map(lsp_to_fzf, items)
+  fzf(source, jump)
 end
 
 -------------------- SETUP ---------------------------------
 local handlers = {
   ['callHierarchy/incomingCalls'] = make_call_hierarchy_handler('from'),
   ['callHierarchy/outgoingCalls'] = make_call_hierarchy_handler('to'),
+  ['textDocument/codeAction'] = code_action_handler,
   ['textDocument/declaration'] = location_handler,
   ['textDocument/definition'] = location_handler,
   ['textDocument/documentSymbol'] = symbol_handler,
@@ -169,5 +215,6 @@ end
 
 ------------------------------------------------------------
 return {
+  diagnostics = diagnostics,
   setup = setup,
 }
