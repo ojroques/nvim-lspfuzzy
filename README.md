@@ -65,13 +65,13 @@ EOF
 ```
 
 By default the following FZF commands are available:
-* `tab`: select multiple entries
-* `shift+tab`: deselect an entry
-* `ctrl-a`: select all entries
-* `ctrl-d`: deselect all entries
-* `ctrl-t`: go to location in a new tab
-* `ctrl-v`: go to location in a vertical split
-* `ctrl-x`: go to location in a horizontal split
+* <kbd>**tab**</kbd> : select multiple entries
+* <kbd>**shift+tab**</kbd> : deselect an entry
+* <kbd>**ctrl-a**</kbd> : select all entries
+* <kbd>**ctrl-d**</kbd> : deselect all entries
+* <kbd>**ctrl-t**</kbd> : go to location in a new tab
+* <kbd>**ctrl-v**</kbd> : go to location in a vertical split
+* <kbd>**ctrl-x**</kbd> : go to location in a horizontal split
 
 ## Configuration
 You can pass options to the `setup()` function. Here are all available options
