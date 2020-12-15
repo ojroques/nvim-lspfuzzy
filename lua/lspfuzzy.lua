@@ -10,7 +10,7 @@ local current_actions = {}  -- hold all available code actions
 -------------------- OPTIONS -------------------------------
 local opts = {
   methods = 'all',         -- either 'all' or a list of LSP methods
-  fzf_preview = {          -- arguments of FZF '--preview-window' option
+  fzf_preview = {          -- arguments to the FZF '--preview-window' option
     'right:+{2}-/2'
   },
   fzf_action = {           -- FZF actions
@@ -220,16 +220,13 @@ local function load_fzf_opts()
   return fzf_opts
 end
 
-local function set_handlers()
-  if opts.methods == 'all' then opts.methods = vim.tbl_keys(handlers) end
-  local set_handler = function(m) lsp.handlers[m] = handlers[m] end
-  vim.tbl_map(set_handler, opts.methods)
-end
-
 local function setup(user_opts)
+  -- Load FZF and user settings
   opts = vim.tbl_extend('keep', load_fzf_opts(), opts)
   opts = vim.tbl_extend('keep', user_opts, opts)
-  set_handlers()
+  -- Set LSP handlers
+  if opts.methods == 'all' then opts.methods = vim.tbl_keys(handlers) end
+  for _, m in ipairs(opts.methods) do lsp.handlers[m] = handlers[m] end
 end
 
 ------------------------------------------------------------
