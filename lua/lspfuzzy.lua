@@ -5,7 +5,7 @@
 -------------------- VARIABLES -----------------------------
 local api, cmd, fn, g, vim = vim.api, vim.cmd, vim.fn, vim.g, vim
 local lsp = require 'vim.lsp'
-local current_actions = {}  -- hold all available code actions
+local current_actions = {}  -- hold all currently available code actions
 
 -------------------- OPTIONS -------------------------------
 local opts = {
@@ -232,7 +232,8 @@ end
 ------------------------------------------------------------
 return {
   diagnostics = function(bufnr)
-    diagnostics_cmd({[tonumber(bufnr)] = lsp.diagnostic.get(tonumber(bufnr))})
+    bufnr = tonumber(bufnr)
+    diagnostics_cmd({[bufnr] = lsp.diagnostic.get(bufnr)})
   end,
   diagnostics_all = function()
     diagnostics_cmd(lsp.diagnostic.get_all())
