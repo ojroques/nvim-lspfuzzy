@@ -10,8 +10,10 @@ local current_actions = {}  -- hold all available code actions
 -------------------- OPTIONS -------------------------------
 local opts = {
   methods = 'all',         -- either 'all' or a list of LSP methods
-  fzf_options = {},        -- options passed to FZF
-  fzf_action = {           -- additional FZF actions
+  fzf_preview = {          -- arguments of FZF '--preview-window' option
+    'right:+{2}-/2'
+  },
+  fzf_action = {           -- FZF actions
     ['ctrl-t'] = 'tabedit',  -- go to location in a new tab
     ['ctrl-v'] = 'vsplit',   -- go to location in a vertical split
     ['ctrl-x'] = 'split',    -- go to location in a horizontal split
@@ -73,7 +75,7 @@ local function apply_action(entries)
   end
 end
 
-local function fzf_defaults(preview, multi)
+local function build_fzf_opts(preview, multi)
   local fzf_opts = {'--ansi', '--delimiter', ':'}
   -- Enable multi-selection
   if multi then
@@ -89,10 +91,9 @@ local function fzf_defaults(preview, multi)
     })
   end
   -- Enable preview with fzf.vim
-  if preview and g.loaded_fzf_vim then
-    local args = {'right:+{2}-/2'}
-    if g.fzf_preview_window then args = g.fzf_preview_window end
-    vim.list_extend(fzf_opts, fn['fzf#vim#with_preview'](unpack(args)).options)
+  if preview and opts.fzf_preview then
+    local args = fn['fzf#vim#with_preview'](unpack(opts.fzf_preview)).options
+    vim.list_extend(fzf_opts, args)
   end
   return fzf_opts
 end
@@ -102,10 +103,7 @@ local function fzf(source, sink, preview, multi)
     echo('WarningMsg', 'FZF is not loaded!')
     return
   end
-  local fzf_opts = opts.fzf_options
-  if not fzf_opts or vim.tbl_isempty(fzf_opts) then
-    fzf_opts = fzf_defaults(preview, multi)
-  end
+  local fzf_opts = build_fzf_opts(preview, multi)
   local fzf_opts_wrap = fn['fzf#wrap']({source = source, options = fzf_opts})
   fzf_opts_wrap['sink*'] = sink  -- 'sink*' needs to be defined outside wrap()
   fn['fzf#run'](fzf_opts_wrap)
@@ -215,14 +213,23 @@ local handlers = {
   ['workspace/symbol'] = symbol_handler,
 }
 
-local function setup(user_opts)
-  local set_handler = function(m) lsp.handlers[m] = handlers[m] end
-  -- Use actions from the FZF 'action' option instead of defaults
-  if g.fzf_action then opts.fzf_action = g.fzf_action end
-  opts = vim.tbl_extend('keep', user_opts, opts)
-  -- Redefine all LSP handlers
+local function load_fzf_opts()
+  local fzf_opts = {}
+  if g.fzf_action then fzf_opts.fzf_action = g.fzf_action end
+  if g.fzf_preview_window then fzf_opts.fzf_preview = g.fzf_preview_window end
+  return fzf_opts
+end
+
+local function set_handlers()
   if opts.methods == 'all' then opts.methods = vim.tbl_keys(handlers) end
+  local set_handler = function(m) lsp.handlers[m] = handlers[m] end
   vim.tbl_map(set_handler, opts.methods)
+end
+
+local function setup(user_opts)
+  opts = vim.tbl_extend('keep', load_fzf_opts(), opts)
+  opts = vim.tbl_extend('keep', user_opts, opts)
+  set_handlers()
 end
 
 ------------------------------------------------------------
