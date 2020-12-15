@@ -3,7 +3,7 @@
 -- github.com/ojroques
 
 -------------------- VARIABLES -----------------------------
-local api, cmd, fn, g = vim.api, vim.cmd, vim.fn, vim.g
+local api, cmd, fn, g, vim = vim.api, vim.cmd, vim.fn, vim.g, vim
 local lsp = require 'vim.lsp'
 local current_actions = {}  -- hold all available code actions
 
@@ -73,40 +73,40 @@ local function apply_action(entries)
   end
 end
 
+local function fzf_defaults(preview, multi)
+  local fzf_opts = {'--ansi', '--delimiter', ':'}
+  -- Enable multi-selection
+  if multi then
+    vim.list_extend(fzf_opts, {
+      '--bind', 'ctrl-a:select-all,ctrl-d:deselect-all',
+      '--multi',
+    })
+  end
+  -- Enable FZF actions
+  if g.fzf_action and not vim.tbl_isempty(g.fzf_action) then
+    vim.list_extend(fzf_opts, {
+      '--expect', table.concat(vim.tbl_keys(g.fzf_action), ',')
+    })
+  end
+  -- Enable preview with fzf.vim
+  if preview and g.loaded_fzf_vim then
+    local args = {'right:+{2}-/2'}
+    if g.fzf_preview_window then args = g.fzf_preview_window end
+    vim.list_extend(fzf_opts, fn['fzf#vim#with_preview'](unpack(args)).options)
+  end
+  return fzf_opts
+end
+
 local function fzf(source, sink, preview, multi)
   if not g.loaded_fzf then
     echo('WarningMsg', 'FZF is not loaded!')
     return
   end
-  -- Set up default FZF options
-  if not opts.fzf_options or vim.tbl_isempty(opts.fzf_options) then
-    opts.fzf_options = {'--ansi'}
-    -- Enable multi-selection
-    if multi then
-      vim.list_extend(opts.fzf_options, {
-        '--bind', 'ctrl-a:select-all,ctrl-d:deselect-all',
-        '--multi',
-      })
-    end
-    -- Enable FZF actions
-    if opts.fzf_action and not vim.tbl_isempty(opts.fzf_action) then
-      vim.list_extend(opts.fzf_options, {
-        '--expect', table.concat(vim.tbl_keys(opts.fzf_action), ','),
-      })
-    end
-    -- Enable preview with fzf.vim
-    if preview and g.loaded_fzf_vim then
-      vim.list_extend(opts.fzf_options, {
-        '--delimiter', ':',
-        '--preview-window', '+{2}-/2',
-      })
-      vim.list_extend(opts.fzf_options, fn['fzf#vim#with_preview']().options)
-    end
+  local fzf_opts = opts.fzf_options
+  if not fzf_opts or vim.tbl_isempty(fzf_opts) then
+    fzf_opts = fzf_defaults(preview, multi)
   end
-  local fzf_opts_wrap = fn['fzf#wrap']({
-    source = source,
-    options = opts.fzf_options,
-  })
+  local fzf_opts_wrap = fn['fzf#wrap']({source = source, options = fzf_opts})
   fzf_opts_wrap['sink*'] = sink  -- 'sink*' needs to be defined outside wrap()
   fn['fzf#run'](fzf_opts_wrap)
 end
@@ -214,14 +214,10 @@ local handlers = {
 local function setup(user_opts)
   local set_handler = function(m) lsp.handlers[m] = handlers[m] end
   -- Use actions from the FZF 'action' option instead of defaults
-  if g.fzf_action then
-    opts.fzf_action = g.fzf_action
-  end
+  if g.fzf_action then opts.fzf_action = g.fzf_action end
   opts = vim.tbl_extend('keep', user_opts, opts)
   -- Redefine all LSP handlers
-  if opts.methods == 'all' then
-    opts.methods = vim.tbl_keys(handlers)
-  end
+  if opts.methods == 'all' then opts.methods = vim.tbl_keys(handlers) end
   vim.tbl_map(set_handler, opts.methods)
 end
 
