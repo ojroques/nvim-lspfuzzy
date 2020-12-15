@@ -6,7 +6,7 @@ to display results and navigate the code.
 
 It works by redefining LSP handlers so that they call FZF. Therefore
 you don't need to change any of your exising LSP mappings. It's also **small**
-(currently at ~230 SLOC) and **written entirely in Lua**.
+(currently at ~220 SLOC) and **written entirely in Lua**.
 
 The plugin is compatible only with Neovim 0.5+.
 
@@ -84,7 +84,7 @@ with their default settings:
 ```lua
 require('lspfuzzy').setup {
   methods = 'all',         -- either 'all' or a list of LSP methods (see below)
-  fzf_preview = {          -- arguments of FZF '--preview-window' option
+  fzf_preview = {          -- arguments to the FZF '--preview-window' option
     'right:+{2}-/2'
   },
   fzf_action = {           -- FZF actions
@@ -97,7 +97,7 @@ require('lspfuzzy').setup {
 }
 ```
 
-The `fzf_preview` and `fzf_action` options are determined as follows:
+The `fzf_preview` and `fzf_action` settings are determined as follows:
 1. Values passed to `setup()` are used first.
 2. Otherwise the plugin will try to load values from the respective FZF
   options `g:fzf_preview_window` and `g:fzf_action` if they are set.
@@ -124,10 +124,10 @@ workspace/symbol
 #### Preview does not work
 You need to install [fzf.vim](https://github.com/junegunn/fzf.vim) to enable
 previews. If it's already installed, make sure it's up-to-date. The plugin
-checks that `g:loaded_fzf_vim` is set, which was defined
+checks that `g:loaded_fzf_vim` is set, which was introduced
 [in this commit](https://github.com/junegunn/fzf.vim/commit/636a62f140181f80c8e7460a76ae6a5d2c5d97b2).
 
-#### Preview does not go to the correct line
+#### Preview does not scroll to the selected location
 Try to append `+{2}-/2` to either `g:fzf_preview_window` or to the
 `fzf_preview` option in `setup()` to make the preview respect line numbers.
 For instance:
