@@ -83,9 +83,9 @@ local function fzf_defaults(preview, multi)
     })
   end
   -- Enable FZF actions
-  if g.fzf_action and not vim.tbl_isempty(g.fzf_action) then
+  if opts.fzf_action and not vim.tbl_isempty(opts.fzf_action) then
     vim.list_extend(fzf_opts, {
-      '--expect', table.concat(vim.tbl_keys(g.fzf_action), ',')
+      '--expect', table.concat(vim.tbl_keys(opts.fzf_action), ',')
     })
   end
   -- Enable preview with fzf.vim
@@ -192,6 +192,10 @@ local function diagnostics_cmd(diagnostics)
         col = diag.range.start.character + 1,
       })
     end
+  end
+  if vim.tbl_isempty(items) then
+    echo('None', 'No diagnostic found.')
+    return
   end
   local source = vim.tbl_map(lsp_to_fzf, items)
   fzf(source, jump, true, true)
