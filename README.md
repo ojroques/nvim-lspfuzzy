@@ -6,7 +6,7 @@ to display results and navigate the code.
 
 It works by redefining LSP handlers so that they call FZF. Therefore
 you don't need to change any of your exising LSP mappings. It's also **small**
-(currently at ~220 SLOC) and **written entirely in Lua**.
+(currently at ~230 SLOC) and **written entirely in Lua**.
 
 The plugin is compatible only with Neovim 0.5+.
 
@@ -84,8 +84,10 @@ with their default settings:
 ```lua
 require('lspfuzzy').setup {
   methods = 'all',         -- either 'all' or a list of LSP methods (see below)
-  fzf_options = {},        -- options passed to FZF (overwrite the embedded default ones)
-  fzf_action = {           -- additional FZF actions
+  fzf_preview = {          -- arguments of FZF '--preview-window' option
+    'right:+{2}-/2'
+  },
+  fzf_action = {           -- FZF actions
     ['ctrl-t'] = 'tabedit',  -- go to location in a new tab
     ['ctrl-v'] = 'vsplit',   -- go to location in a vertical split
     ['ctrl-x'] = 'split',    -- go to location in a horizontal split
@@ -95,12 +97,11 @@ require('lspfuzzy').setup {
 }
 ```
 
-The FZF actions are determined as follows:
-1. Actions passed to the `fzf_action` option when calling `setup()` are used
-  first.
-2. Otherwise the plugin will try to load actions from the FZF option
-  `g:fzf_action` if it's set.
-3. Finally the default actions will be used.
+The `fzf_preview` and `fzf_action` options are determined as follows:
+1. Values passed to `setup()` are used first.
+2. Otherwise the plugin will try to load values from the respective FZF
+  options `g:fzf_preview_window` and `g:fzf_action` if they are set.
+3. Finally the default values will be used.
 
 ## Supported LSP methods
 You can enable FZF only for a subset of LSP methods by passing them as a list
@@ -127,8 +128,8 @@ checks that `g:loaded_fzf_vim` is set, which was defined
 [in this commit](https://github.com/junegunn/fzf.vim/commit/636a62f140181f80c8e7460a76ae6a5d2c5d97b2).
 
 #### Preview does not go to the correct line
-You may be using custom preview options via `g:fzf_preview_window`. In that
-case, you should append `+{2}-/2` to make the preview respect line numbers.
+Try to append `+{2}-/2` to either `g:fzf_preview_window` or to the
+`fzf_preview` option in `setup()` to make the preview respect line numbers.
 For instance:
 ```lua
 vim.g.fzf_preview_window = {'down:+{2}-/2'}
