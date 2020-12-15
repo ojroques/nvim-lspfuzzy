@@ -3,7 +3,7 @@
 -- github.com/ojroques
 
 -------------------- VARIABLES -----------------------------
-local api, cmd, fn, g, vim = vim.api, vim.cmd, vim.fn, vim.g, vim
+local api, cmd, fn, g = vim.api, vim.cmd, vim.fn, vim.g
 local lsp = require 'vim.lsp'
 local current_actions = {}  -- hold all available code actions
 
@@ -11,7 +11,7 @@ local current_actions = {}  -- hold all available code actions
 local opts = {
   methods = 'all',         -- either 'all' or a list of LSP methods
   fzf_options = {},        -- options passed to FZF
-  fzf_action = {           -- additional FZF commands
+  fzf_action = {           -- additional FZF actions
     ['ctrl-t'] = 'tabedit',  -- go to location in a new tab
     ['ctrl-v'] = 'vsplit',   -- go to location in a vertical split
     ['ctrl-x'] = 'split',    -- go to location in a horizontal split
@@ -23,7 +23,7 @@ local opts = {
 -------------------- HELPERS -------------------------------
 local function echo(hlgroup, msg)
   cmd(string.format('echohl %s', hlgroup))
-  cmd(string.format('echo "lspfuzzy: %s"', msg))
+  cmd(string.format('echo "[lspfuzzy] %s"', msg))
   cmd('echohl None')
 end
 
@@ -63,32 +63,32 @@ end
 
 local function apply_action(entries)
   if not entries or #entries < 2 then return end
-  table.remove(entries, 1)
-  for _, entry in ipairs(entries) do
-    local action = current_actions[entry]
-    if action.edit then
-      lsp.util.apply_workspace_edit(action.edit)
-    elseif type(action.command) == "table" then
-      lsp.buf.execute_command(action.command)
-    else
-      lsp.buf.execute_command(action)
-    end
+  local action = current_actions[entries[2]]
+  if action.edit then
+    lsp.util.apply_workspace_edit(action.edit)
+  elseif type(action.command) == "table" then
+    lsp.buf.execute_command(action.command)
+  else
+    lsp.buf.execute_command(action)
   end
 end
 
-local function fzf(source, sink, preview)
+local function fzf(source, sink, preview, multi)
   if not g.loaded_fzf then
-    echo('WarningMsg', 'FZF is not loaded.')
+    echo('WarningMsg', 'FZF is not loaded!')
     return
   end
   -- Set up default FZF options
   if not opts.fzf_options or vim.tbl_isempty(opts.fzf_options) then
-    opts.fzf_options = {
-      '--ansi',
-      '--bind', 'ctrl-a:select-all,ctrl-d:deselect-all',
-      '--multi',
-    }
-    -- Enable FZF commands
+    opts.fzf_options = {'--ansi'}
+    -- Enable multi-selection
+    if multi then
+      vim.list_extend(opts.fzf_options, {
+        '--bind', 'ctrl-a:select-all,ctrl-d:deselect-all',
+        '--multi',
+      })
+    end
+    -- Enable FZF actions
     if opts.fzf_action and not vim.tbl_isempty(opts.fzf_action) then
       vim.list_extend(opts.fzf_options, {
         '--expect', table.concat(vim.tbl_keys(opts.fzf_action), ','),
@@ -113,14 +113,20 @@ end
 
 -------------------- LSP HANDLERS --------------------------
 local function symbol_handler(_, _, result, _, bufnr)
-  if not result or vim.tbl_isempty(result) then return end
+  if not result or vim.tbl_isempty(result) then
+    echo('None', 'No symbol found.')
+    return
+  end
   local items = lsp.util.symbols_to_items(result, bufnr)
   local source = vim.tbl_map(lsp_to_fzf, items)
-  fzf(source, jump, true)
+  fzf(source, jump, true, true)
 end
 
 local function location_handler(_, _, result)
-  if not result or vim.tbl_isempty(result) then return end
+  if not result or vim.tbl_isempty(result) then
+    echo('None', 'No reference found.')
+    return
+  end
   -- Jump immediately if not a list
   if not vim.tbl_islist(result) then
     lsp.util.jump_to_location(result)
@@ -133,12 +139,15 @@ local function location_handler(_, _, result)
   end
   local items = lsp.util.locations_to_items(result)
   local source = vim.tbl_map(lsp_to_fzf, items)
-  fzf(source, jump, true)
+  fzf(source, jump, true, true)
 end
 
 local function make_call_hierarchy_handler(direction)
   return function(_, _, result)
-    if not result or vim.tbl_isempty(result) then return end
+    if not result or vim.tbl_isempty(result) then
+      echo('None', 'No call found.')
+      return
+    end
     local items = {}
     for _, call_hierarchy_call in pairs(result) do
       local call_hierarchy_item = call_hierarchy_call[direction]
@@ -152,12 +161,15 @@ local function make_call_hierarchy_handler(direction)
       end
     end
     local source = vim.tbl_map(lsp_to_fzf, items)
-    fzf(source, jump, true)
+    fzf(source, jump, true, true)
   end
 end
 
 local function code_action_handler(_, _, actions)
-  if not actions or vim.tbl_isempty(actions) then return end
+  if not actions or vim.tbl_isempty(actions) then
+    echo('None', 'No code action available.')
+    return
+  end
   local choices = {}
   current_actions = {}
   for i, action in ipairs(actions) do
@@ -165,7 +177,7 @@ local function code_action_handler(_, _, actions)
     table.insert(choices, text)
     current_actions[text] = action
   end
-  fzf(choices, apply_action, false)
+  fzf(choices, apply_action, false, false)
 end
 
 -------------------- COMMANDS ------------------------------
@@ -182,7 +194,7 @@ local function diagnostics_cmd(diagnostics)
     end
   end
   local source = vim.tbl_map(lsp_to_fzf, items)
-  fzf(source, jump, true)
+  fzf(source, jump, true, true)
 end
 
 -------------------- SETUP ---------------------------------
@@ -201,7 +213,7 @@ local handlers = {
 
 local function setup(user_opts)
   local set_handler = function(m) lsp.handlers[m] = handlers[m] end
-  -- Use commands from the FZF 'action' option instead of defaults
+  -- Use actions from the FZF 'action' option instead of defaults
   if g.fzf_action then
     opts.fzf_action = g.fzf_action
   end
@@ -216,8 +228,7 @@ end
 ------------------------------------------------------------
 return {
   diagnostics = function(bufnr)
-    local bufnr_int = tonumber(bufnr)
-    diagnostics_cmd({[bufnr_int] = lsp.diagnostic.get(bufnr_int)})
+    diagnostics_cmd({[tonumber(bufnr)] = lsp.diagnostic.get(tonumber(bufnr))})
   end,
   diagnostics_all = function()
     diagnostics_cmd(lsp.diagnostic.get_all())
