@@ -5,7 +5,7 @@
 -------------------- VARIABLES -----------------------------
 local api, cmd, fn, g, vim = vim.api, vim.cmd, vim.fn, vim.g, vim
 local lsp = require 'vim.lsp'
-local tbl_actions = nil  -- a table to hold all available code actions
+local current_actions = {}  -- hold all available code actions
 
 -------------------- OPTIONS -------------------------------
 local opts = {
@@ -65,7 +65,7 @@ local function apply_action(entries)
   if not entries or #entries < 2 then return end
   table.remove(entries, 1)
   for _, entry in ipairs(entries) do
-    local action = tbl_actions[entry]
+    local action = current_actions[entry]
     if action.edit then
       lsp.util.apply_workspace_edit(action.edit)
     elseif type(action.command) == "table" then
@@ -76,7 +76,7 @@ local function apply_action(entries)
   end
 end
 
-local function fzf(source, sink)
+local function fzf(source, sink, preview)
   if not g.loaded_fzf then
     echo('WarningMsg', 'FZF is not loaded.')
     return
@@ -95,7 +95,7 @@ local function fzf(source, sink)
       })
     end
     -- Enable preview with fzf.vim
-    if g.loaded_fzf_vim then
+    if preview and g.loaded_fzf_vim then
       vim.list_extend(opts.fzf_options, {
         '--delimiter', ':',
         '--preview-window', '+{2}-/2',
@@ -116,7 +116,7 @@ local function symbol_handler(_, _, result, _, bufnr)
   if not result or vim.tbl_isempty(result) then return end
   local items = lsp.util.symbols_to_items(result, bufnr)
   local source = vim.tbl_map(lsp_to_fzf, items)
-  fzf(source, jump)
+  fzf(source, jump, true)
 end
 
 local function location_handler(_, _, result)
@@ -133,7 +133,7 @@ local function location_handler(_, _, result)
   end
   local items = lsp.util.locations_to_items(result)
   local source = vim.tbl_map(lsp_to_fzf, items)
-  fzf(source, jump)
+  fzf(source, jump, true)
 end
 
 local function make_call_hierarchy_handler(direction)
@@ -152,20 +152,20 @@ local function make_call_hierarchy_handler(direction)
       end
     end
     local source = vim.tbl_map(lsp_to_fzf, items)
-    fzf(source, jump)
+    fzf(source, jump, true)
   end
 end
 
 local function code_action_handler(_, _, actions)
   if not actions or vim.tbl_isempty(actions) then return end
   local choices = {}
-  tbl_actions = {}
+  current_actions = {}
   for i, action in ipairs(actions) do
     local text = string.format("%d. %s", i, action.title)
     table.insert(choices, text)
-    tbl_actions[text] = action
+    current_actions[text] = action
   end
-  fzf(choices, apply_action)
+  fzf(choices, apply_action, false)
 end
 
 -------------------- COMMANDS ------------------------------
@@ -182,7 +182,7 @@ local function diagnostics_cmd(diagnostics)
     end
   end
   local source = vim.tbl_map(lsp_to_fzf, items)
-  fzf(source, jump)
+  fzf(source, jump, true)
 end
 
 -------------------- SETUP ---------------------------------
@@ -216,7 +216,8 @@ end
 ------------------------------------------------------------
 return {
   diagnostics = function(bufnr)
-    diagnostics_cmd({[bufnr] = lsp.diagnostic.get(bufnr)})
+    local bufnr_int = tonumber(bufnr)
+    diagnostics_cmd({[bufnr_int] = lsp.diagnostic.get(bufnr_int)})
   end,
   diagnostics_all = function()
     diagnostics_cmd(lsp.diagnostic.get_all())

@@ -66,7 +66,7 @@ EOF
 
 In addition, the plugin creates the following commands:
 * `:LspDiagnostics <bufnr>`: list diagnostics from given buffer
-  (`0` for current buffer)
+  (use `0` for current buffer)
 * `:LspDiagnosticsAll`: list diagnostics from all buffers
 
 By default the following FZF actions are available:
