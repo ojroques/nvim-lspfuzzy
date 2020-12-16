@@ -11,7 +11,7 @@ local current_actions = {}  -- hold all currently available code actions
 local opts = {
   methods = 'all',         -- either 'all' or a list of LSP methods
   fzf_preview = {          -- arguments to the FZF '--preview-window' option
-    'right:+{2}-/2'
+    'right:+{2}-/2'          -- preview on the right and centered on entry
   },
   fzf_action = {           -- FZF actions
     ['ctrl-t'] = 'tabedit',  -- go to location in a new tab
