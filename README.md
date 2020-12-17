@@ -39,17 +39,6 @@ Plug 'ojroques/nvim-lspfuzzy', {'branch': 'main'}
 call plug#end()
 ```
 
-#### With Paq
-[Paq](https://github.com/savq/paq-nvim) is a lightweight package manager for
-Neovim. In your *init.lua*:
-```lua
-cmd 'packadd paq-nvim'
-local paq = require('paq-nvim').paq
-paq 'junegunn/fzf'
-paq 'junegunn/fzf.vim'  -- to enable preview (optional)
-paq 'ojroques/nvim-lspfuzzy'
-```
-
 ## Usage
 Simply add this line to your *init.lua*:
 ```lua
@@ -104,8 +93,8 @@ The `fzf_preview` and `fzf_action` settings are determined as follows:
 3. Finally the default values will be used.
 
 ## Supported LSP methods
-You can enable FZF only for a subset of LSP methods by passing them as a list
-to the `methods` option when calling `setup()`. The supported LSP methods are:
+You can enable FZF only for some LSP methods by passing them as a list to
+the `methods` option when calling `setup()`. The supported LSP methods are:
 ```
 callHierarchy/incomingCalls
 callHierarchy/outgoingCalls
