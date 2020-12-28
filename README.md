@@ -15,7 +15,6 @@ The plugin is compatible only with Neovim 0.5+.
 ## Installation
 
 #### With Packer
-In your *plugins.lua*:
 ```lua
 cmd 'packadd packer.nvim'
 return require('packer').startup(function()
@@ -30,12 +29,11 @@ end)
 ```
 
 #### With Plug
-In your *.vimrc* or *init.vim*:
 ```vim
 call plug#begin()
 Plug 'junegunn/fzf', {'do': {-> fzf#install()}}
 Plug 'junegunn/fzf.vim'  " to enable preview (optional)
-Plug 'ojroques/nvim-lspfuzzy', {'branch': 'main'}
+Plug 'ojroques/nvim-lspfuzzy'
 call plug#end()
 ```
 
@@ -45,12 +43,9 @@ Simply add this line to your *init.lua*:
 require('lspfuzzy').setup {}
 ```
 
-If you're using a *.vimrc* or *init.vim*, you need to enclose that line in a
-lua block:
+If you're using a *.vimrc* or *init.vim*:
 ```vim
-lua << EOF
-require('lspfuzzy').setup {}
-EOF
+lua require('lspfuzzy').setup {}
 ```
 
 In addition, the plugin creates the following commands:
