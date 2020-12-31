@@ -91,7 +91,7 @@ local function build_fzf_opts(preview, multi)
     })
   end
   -- Enable preview with fzf.vim
-  if preview and opts.fzf_preview then
+  if g.loaded_fzf_vim and preview and opts.fzf_preview then
     local args = fn['fzf#vim#with_preview'](unpack(opts.fzf_preview)).options
     vim.list_extend(fzf_opts, args)
   end
@@ -215,8 +215,11 @@ local handlers = {
 
 local function load_fzf_opts()
   local fzf_opts = {}
-  if g.fzf_action then fzf_opts.fzf_action = g.fzf_action end
-  if g.fzf_preview_window then fzf_opts.fzf_preview = g.fzf_preview_window end
+  fzf_opts.fzf_action = g.fzf_action
+  fzf_opts.fzf_preview = g.fzf_preview_window
+  if type(fzf_opts.fzf_preview) == 'string' then
+    fzf_opts.fzf_preview = {fzf_opts.fzf_preview}
+  end
   return fzf_opts
 end
 
