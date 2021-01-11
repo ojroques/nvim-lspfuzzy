@@ -86,8 +86,8 @@ The `fzf_preview` and `fzf_action` settings are determined as follows:
    `g:fzf_preview_window` and `g:fzf_action` if they are set.
 3. Finally the default values will be used.
 
-For others FZF options such as `g:fzf_layout` the plugin will respect your
-settings.
+For others FZF options such as `g:fzf_layout` or `g:fzf_colors` the plugin will
+respect your settings.
 
 ## Supported LSP methods
 You can enable FZF only for some LSP methods by passing them as a list to the
