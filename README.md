@@ -1,12 +1,11 @@
 # nvim-lspfuzzy
 
 This plugin makes the Neovim LSP client use
-[FZF](https://github.com/junegunn/fzf)
-to display results and navigate the code.
+[FZF](https://github.com/junegunn/fzf) to display results and navigate the code.
 
-It works by redefining LSP handlers so that they call FZF. Therefore
-you don't need to change any of your exising LSP mappings. It's also **small**
-(currently at ~230 SLOC) and **written entirely in Lua**.
+It works by redefining LSP handlers so that they call FZF. Therefore you don't
+need to change any of your exising LSP mappings. It's also **small** (currently
+at ~230 SLOC) and **written entirely in Lua**.
 
 The plugin is compatible only with Neovim 0.5+.
 
@@ -49,8 +48,8 @@ lua require('lspfuzzy').setup {}
 ```
 
 In addition, the plugin creates the following commands:
-* `:LspDiagnostics <bufnr>`: list diagnostics from given buffer
-  (use `0` for current buffer)
+* `:LspDiagnostics <bufnr>`: list diagnostics from given buffer (use `0` for
+  current buffer)
 * `:LspDiagnosticsAll`: list diagnostics from all buffers
 
 By default the following FZF actions are available:
@@ -83,13 +82,16 @@ require('lspfuzzy').setup {
 
 The `fzf_preview` and `fzf_action` settings are determined as follows:
 1. Values passed to `setup()` are used first.
-2. Otherwise the plugin will try to load values from the respective FZF
-  options `g:fzf_preview_window` and `g:fzf_action` if they are set.
+2. Otherwise the plugin will try to load values from the respective FZF options
+   `g:fzf_preview_window` and `g:fzf_action` if they are set.
 3. Finally the default values will be used.
 
+For others FZF options such as `g:fzf_layout` the plugin will respect your
+settings.
+
 ## Supported LSP methods
-You can enable FZF only for some LSP methods by passing them as a list to
-the `methods` option when calling `setup()`. The supported LSP methods are:
+You can enable FZF only for some LSP methods by passing them as a list to the
+`methods` option when calling `setup()`. The supported LSP methods are:
 ```
 callHierarchy/incomingCalls
 callHierarchy/outgoingCalls
@@ -112,17 +114,16 @@ checks that `g:loaded_fzf_vim` is set, which was introduced
 [in this commit](https://github.com/junegunn/fzf.vim/commit/636a62f140181f80c8e7460a76ae6a5d2c5d97b2).
 
 #### Preview does not scroll to the selected location
-Try to append `+{2}-/2` to either `g:fzf_preview_window` or to the
-`fzf_preview` option in `setup()` to make the preview respect line numbers.
-For instance:
+Try to append `+{2}-/2` to either `g:fzf_preview_window` or to the `fzf_preview`
+option in `setup()` to make the preview respect line numbers. For instance:
 ```lua
 vim.g.fzf_preview_window = {'down:+{2}-/2'}
 ```
 
 #### Using the `fzf_modifier` option breaks the plugin
-The plugin uses the filename embedded in the FZF entry selected by the user
-to jump to the correct location. Therefore it must resolve to a valid path.
-For instance `:.` or `:p` can be used but not `:t`.
+The plugin uses the filename embedded in the FZF entry selected by the user to
+jump to the correct location. Therefore it must resolve to a valid path. For
+instance `:.` or `:p` can be used but not `:t`.
 
 ## License
 [LICENSE](./LICENSE)
