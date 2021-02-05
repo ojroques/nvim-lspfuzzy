@@ -15,25 +15,20 @@ The plugin is compatible only with Neovim 0.5+.
 
 #### With Packer
 ```lua
-cmd 'packadd packer.nvim'
-return require('packer').startup(function()
-  use {
-    'ojroques/nvim-lspfuzzy',
-    requires = {
-      {'junegunn/fzf'},
-      {'junegunn/fzf.vim'},  -- to enable preview (optional)
-    },
-  }
-end)
+use {
+  'ojroques/nvim-lspfuzzy',
+  requires = {
+    {'junegunn/fzf'},
+    {'junegunn/fzf.vim'},  -- to enable preview (optional)
+  },
+}
 ```
 
 #### With Plug
 ```vim
-call plug#begin()
 Plug 'junegunn/fzf', {'do': {-> fzf#install()}}
 Plug 'junegunn/fzf.vim'  " to enable preview (optional)
 Plug 'ojroques/nvim-lspfuzzy'
-call plug#end()
 ```
 
 ## Usage
