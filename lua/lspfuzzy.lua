@@ -5,6 +5,7 @@
 -------------------- VARIABLES -----------------------------
 local api, cmd, fn, g, vim = vim.api, vim.cmd, vim.fn, vim.g, vim
 local lsp = require 'vim.lsp'
+local fmt = string.format
 local current_actions = {}  -- hold all currently available code actions
 
 -------------------- OPTIONS -------------------------------
@@ -24,15 +25,15 @@ local opts = {
 
 -------------------- HELPERS -------------------------------
 local function echo(hlgroup, msg)
-  cmd(string.format('echohl %s', hlgroup))
-  cmd(string.format('echo "[lspfuzzy] %s"', msg))
+  cmd(fmt('echohl %s', hlgroup))
+  cmd(fmt('echo "[lspfuzzy] %s"', msg))
   cmd('echohl None')
 end
 
 local function lsp_to_fzf(item)
   local filename = fn.fnamemodify(item.filename, opts.fzf_modifier)
   local text = opts.fzf_trim and vim.trim(item.text) or item.text
-  return string.format('%s:%s:%s: %s', filename, item.lnum, item.col, text)
+  return fmt('%s:%s:%s: %s', filename, item.lnum, item.col, text)
 end
 
 local function fzf_to_lsp(entry)
@@ -75,8 +76,9 @@ local function apply_action(entries)
   end
 end
 
-local function build_fzf_opts(preview, multi)
-  local fzf_opts = {'--ansi', '--delimiter', ':'}
+local function build_fzf_opts(label, preview, multi)
+  local prompt = fmt("%s> ", label)
+  local fzf_opts = {'--prompt', prompt, '--ansi', '--delimiter', ':'}
   -- Enable multi-selection
   if multi then
     vim.list_extend(fzf_opts, {
@@ -98,52 +100,52 @@ local function build_fzf_opts(preview, multi)
   return fzf_opts
 end
 
-local function fzf(source, sink, preview, multi)
+local function fzf(source, sink, label, preview, multi)
   if not g.loaded_fzf then
     echo('WarningMsg', 'FZF is not loaded!')
     return
   end
-  local fzf_opts = build_fzf_opts(preview, multi)
+  local fzf_opts = build_fzf_opts(label, preview, multi)
   local fzf_opts_wrap = fn['fzf#wrap']({source = source, options = fzf_opts})
   fzf_opts_wrap['sink*'] = sink  -- 'sink*' needs to be defined outside wrap()
   fn['fzf#run'](fzf_opts_wrap)
 end
 
 -------------------- LSP HANDLERS --------------------------
-local function symbol_handler(_, _, result, _, bufnr)
-  if not result or vim.tbl_isempty(result) then
-    echo('None', 'No symbol found.')
-    return
+local function make_symbol_handler(label)
+  return function(_, _, result, _, bufnr)
+    if not result or vim.tbl_isempty(result) then
+      echo('None', fmt('No %s found.', string.lower(label)))
+      return
+    end
+    local items = lsp.util.symbols_to_items(result, bufnr)
+    local source = vim.tbl_map(lsp_to_fzf, items)
+    fzf(source, jump, label, true, true)
   end
-  local items = lsp.util.symbols_to_items(result, bufnr)
-  local source = vim.tbl_map(lsp_to_fzf, items)
-  fzf(source, jump, true, true)
 end
 
-local function location_handler(_, _, result)
-  if not result or vim.tbl_isempty(result) then
-    echo('None', 'No reference found.')
-    return
-  end
-  -- Jump immediately if not a list
-  if not vim.tbl_islist(result) then
-    lsp.util.jump_to_location(result)
-    return
-  end
-  -- Jump immediately if there is only one location
-  if #result == 1 then
-    lsp.util.jump_to_location(result[1])
-    return
-  end
-  local items = lsp.util.locations_to_items(result)
-  local source = vim.tbl_map(lsp_to_fzf, items)
-  fzf(source, jump, true, true)
-end
-
-local function make_call_hierarchy_handler(direction)
+local function make_location_handler(label)
   return function(_, _, result)
     if not result or vim.tbl_isempty(result) then
-      echo('None', 'No call found.')
+      echo('None', fmt('No %s found.', string.lower(label)))
+      return
+    end
+    result = vim.tbl_islist(result) and result or {result}
+    -- Jump immediately if there is only one location
+    if #result == 1 then
+      lsp.util.jump_to_location(result[1])
+      return
+    end
+    local items = lsp.util.locations_to_items(result)
+    local source = vim.tbl_map(lsp_to_fzf, items)
+    fzf(source, jump, label, true, true)
+  end
+end
+
+local function make_call_hierarchy_handler(label, direction)
+  return function(_, _, result)
+    if not result or vim.tbl_isempty(result) then
+      echo('None', fmt('No %s found.', string.lower(label)))
       return
     end
     local items = {}
@@ -159,27 +161,30 @@ local function make_call_hierarchy_handler(direction)
       end
     end
     local source = vim.tbl_map(lsp_to_fzf, items)
-    fzf(source, jump, true, true)
+    fzf(source, jump, label, true, true)
   end
 end
 
-local function code_action_handler(_, _, actions)
-  if not actions or vim.tbl_isempty(actions) then
-    echo('None', 'No code action available.')
-    return
+local function make_code_action_handler(label)
+  return function(_, _, actions)
+    if not actions or vim.tbl_isempty(actions) then
+      echo('None', fmt('No %s available.', string.lower(label)))
+      return
+    end
+    local choices = {}
+    current_actions = {}
+    for i, action in ipairs(actions) do
+      local text = fmt("%d. %s", i, action.title)
+      table.insert(choices, text)
+      current_actions[text] = action
+    end
+    fzf(choices, apply_action, label, false, false)
   end
-  local choices = {}
-  current_actions = {}
-  for i, action in ipairs(actions) do
-    local text = string.format("%d. %s", i, action.title)
-    table.insert(choices, text)
-    current_actions[text] = action
-  end
-  fzf(choices, apply_action, false, false)
 end
 
 -------------------- COMMANDS ------------------------------
 local function diagnostics_cmd(diagnostics)
+  local label = 'Diagnostics'
   local items = {}
   for bufnr, diags in pairs(diagnostics) do
     for _, diag in ipairs(diags) do
@@ -192,25 +197,25 @@ local function diagnostics_cmd(diagnostics)
     end
   end
   if vim.tbl_isempty(items) then
-    echo('None', 'No diagnostic found.')
+    echo('None', fmt('No %s available.', string.lower(label)))
     return
   end
   local source = vim.tbl_map(lsp_to_fzf, items)
-  fzf(source, jump, true, true)
+  fzf(source, jump, label, true, true)
 end
 
 -------------------- SETUP ---------------------------------
 local handlers = {
-  ['callHierarchy/incomingCalls'] = make_call_hierarchy_handler('from'),
-  ['callHierarchy/outgoingCalls'] = make_call_hierarchy_handler('to'),
-  ['textDocument/codeAction'] = code_action_handler,
-  ['textDocument/declaration'] = location_handler,
-  ['textDocument/definition'] = location_handler,
-  ['textDocument/documentSymbol'] = symbol_handler,
-  ['textDocument/implementation'] = location_handler,
-  ['textDocument/references'] = location_handler,
-  ['textDocument/typeDefinition'] = location_handler,
-  ['workspace/symbol'] = symbol_handler,
+  ['callHierarchy/incomingCalls'] = make_call_hierarchy_handler('Incoming Calls', 'from'),
+  ['callHierarchy/outgoingCalls'] = make_call_hierarchy_handler('Outgoing Calls', 'to'),
+  ['textDocument/codeAction'] = make_code_action_handler('Code Actions'),
+  ['textDocument/declaration'] = make_location_handler('Declarations'),
+  ['textDocument/definition'] = make_location_handler('Definitions'),
+  ['textDocument/documentSymbol'] = make_symbol_handler('Document Symbols'),
+  ['textDocument/implementation'] = make_location_handler('Implementations'),
+  ['textDocument/references'] = make_location_handler('References'),
+  ['textDocument/typeDefinition'] = make_location_handler('Type Definitions'),
+  ['workspace/symbol'] = make_symbol_handler('Workspace Symbols'),
 }
 
 local function load_fzf_opts()
