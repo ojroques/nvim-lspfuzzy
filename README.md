@@ -5,7 +5,7 @@ This plugin makes the Neovim LSP client use
 
 It works by redefining LSP handlers so that they call FZF. Therefore you don't
 need to change any of your exising LSP mappings. It's also **small** (currently
-at ~230 SLOC) and **written entirely in Lua**.
+at ~250 LOC) and **written entirely in Lua**.
 
 The plugin is compatible only with Neovim 0.5+.
 
