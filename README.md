@@ -12,8 +12,7 @@ The plugin is compatible only with Neovim 0.5+.
 ![demo](./demo.gif)
 
 ## Installation
-
-#### With Packer
+With [packer.nvim](https://github.com/wbthomason/packer.nvim):
 ```lua
 use {
   'ojroques/nvim-lspfuzzy',
@@ -24,11 +23,11 @@ use {
 }
 ```
 
-#### With Plug
-```vim
-Plug 'junegunn/fzf', {'do': {-> fzf#install()}}
-Plug 'junegunn/fzf.vim'  " to enable preview (optional)
-Plug 'ojroques/nvim-lspfuzzy'
+With [paq-nvim](https://github.com/savq/paq-nvim):
+```lua
+paq {'junegunn/fzf'}
+paq {'junegunn/fzf.vim'}  -- to enable preview (optional)
+paq {'ojroques/nvim-lspfuzzy'}
 ```
 
 ## Usage
