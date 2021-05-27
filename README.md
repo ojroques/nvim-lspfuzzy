@@ -114,10 +114,5 @@ option in `setup()` to make the preview respect line numbers. For instance:
 vim.g.fzf_preview_window = {'down:+{2}-/2'}
 ```
 
-#### Using the `fzf_modifier` option breaks the plugin
-The plugin uses the filename embedded in the FZF entry selected by the user to
-jump to the correct location. Therefore it must resolve to a valid path. For
-instance `:.` or `:p` can be used but not `:t`.
-
 ## License
 [LICENSE](./LICENSE)
