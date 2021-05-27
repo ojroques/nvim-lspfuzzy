@@ -5,7 +5,7 @@ This plugin makes the Neovim LSP client use
 
 It works by redefining LSP handlers so that they call FZF. Therefore you don't
 need to change any of your exising LSP mappings. It's also **small** (currently
-at ~250 LOC) and **written entirely in Lua**.
+at ~260 LOC) and **written entirely in Lua**.
 
 The plugin is compatible only with Neovim 0.5+.
 
@@ -100,12 +100,9 @@ workspace/symbol
 ```
 
 ## Troubleshooting
-
 #### Preview does not work
 You need to install [fzf.vim](https://github.com/junegunn/fzf.vim) to enable
-previews. If it's already installed, make sure it's up-to-date. The plugin
-checks that `g:loaded_fzf_vim` is set, which was introduced
-[in this commit](https://github.com/junegunn/fzf.vim/commit/636a62f140181f80c8e7460a76ae6a5d2c5d97b2).
+previews. If it's already installed, make sure it's up-to-date.
 
 #### Preview does not scroll to the selected location
 Try to append `+{2}-/2` to either `g:fzf_preview_window` or to the `fzf_preview`
@@ -115,8 +112,8 @@ vim.g.fzf_preview_window = {'down:+{2}-/2'}
 ```
 
 #### Using the `fzf_modifier` option breaks the plugin
-The plugin uses the filename embedded in the FZF entry selected by the user to
-jump to the correct location. Therefore it must resolve to a valid path. For
+The plugin uses the filename embedded in the FZF entry currently selected to
+jump to the correct location. Therefore it must resolve to a valid path: for
 instance `:.` or `:p` can be used but not `:t`.
 
 ## License
