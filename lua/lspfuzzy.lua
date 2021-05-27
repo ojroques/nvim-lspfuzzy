@@ -7,7 +7,6 @@ local api, cmd, fn, g, vim = vim.api, vim.cmd, vim.fn, vim.g, vim
 local lsp = require 'vim.lsp'
 local fmt = string.format
 local current_actions = {}  -- hold all currently available code actions
-local full_paths = {}       -- map FZF entries to a full file path
 
 -------------------- OPTIONS -------------------------------
 local opts = {
@@ -35,18 +34,16 @@ local function lsp_to_fzf(item)
   local path = fn.fnamemodify(item.filename, opts.fzf_modifier)
   local text = opts.fzf_trim and vim.trim(item.text) or item.text
   local entry = fmt('%s:%s:%s: %s', path, item.lnum, item.col, text)
-  full_paths[entry] = fn.fnamemodify(item.filename, ':p')
   return entry
 end
 
 local function fzf_to_lsp(entry)
   local split = vim.split(entry, ':')
-  local uri = vim.uri_from_fname(full_paths[entry])
+  local uri = vim.uri_from_fname(fn.fnamemodify(split[1], ':p'))
   local line = tonumber(split[2]) - 1
   local column = tonumber(split[3]) - 1
   local position = {line = line, character = column}
   local range = {start = position, ['end'] = position}
-  full_paths[entry] = nil
   return {uri = uri, range = range}
 end
 
@@ -82,7 +79,12 @@ end
 
 local function build_fzf_opts(label, preview, multi)
   local prompt = fmt("%s> ", label)
-  local fzf_opts = {'--prompt', prompt, '--ansi', '--delimiter', ':'}
+  local fzf_opts = {
+    '--ansi',
+    '--delimiter', ':',
+    '--keep-right',
+    '--prompt', prompt,
+  }
   -- Enable multi-selection
   if multi then
     vim.list_extend(fzf_opts, {
