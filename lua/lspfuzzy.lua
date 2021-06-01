@@ -33,8 +33,7 @@ end
 local function lsp_to_fzf(item)
   local path = fn.fnamemodify(item.filename, opts.fzf_modifier)
   local text = opts.fzf_trim and vim.trim(item.text) or item.text
-  local entry = fmt('%s:%s:%s: %s', path, item.lnum, item.col, text)
-  return entry
+  return fmt('%s:%s:%s: %s', path, item.lnum, item.col, text)
 end
 
 local function fzf_to_lsp(entry)
@@ -108,8 +107,7 @@ end
 
 local function fzf(source, sink, label, preview, multi)
   if not g.loaded_fzf then
-    echo('WarningMsg', 'FZF is not loaded!')
-    return
+    return echo('WarningMsg', 'FZF is not loaded')
   end
   local fzf_opts = build_fzf_opts(label, preview, multi)
   local fzf_opts_wrap = fn['fzf#wrap']({source = source, options = fzf_opts})
@@ -128,8 +126,7 @@ local function location_handler(_, label, result)
   result = vim.tbl_islist(result) and result or {result}
   -- Jump immediately if there is only one location
   if #result == 1 then
-    lsp.util.jump_to_location(result[1])
-    return
+    return lsp.util.jump_to_location(result[1])
   end
   local items = lsp.util.locations_to_items(result)
   local source = vim.tbl_map(lsp_to_fzf, items)
@@ -181,8 +178,7 @@ local function diagnostics_cmd(diagnostics)
     end
   end
   if vim.tbl_isempty(items) then
-    echo('None', fmt('No %s available.', string.lower(label)))
-    return
+    return echo('None', fmt('No %s available', string.lower(label)))
   end
   local source = vim.tbl_map(lsp_to_fzf, items)
   fzf(source, jump, label, true, true)
@@ -222,7 +218,7 @@ local function wrap_handler(handler)
       return echo('ErrorMsg', err.message)
     end
     if not result or vim.tbl_isempty(result) then
-      return echo('None', fmt('No %s found.', string.lower(label)))
+      return echo('None', fmt('No %s found', string.lower(label)))
     end
     return handler(err, label, result, client_id, bufnr, config)
   end
