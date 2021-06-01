@@ -118,42 +118,37 @@ local function fzf(source, sink, label, preview, multi)
 end
 
 -------------------- LSP HANDLERS --------------------------
-local function make_symbol_handler(label)
-  return function(_, _, result, _, bufnr)
-    if not result or vim.tbl_isempty(result) then
-      echo('None', fmt('No %s found.', string.lower(label)))
-      return
-    end
-    local items = lsp.util.symbols_to_items(result, bufnr)
-    local source = vim.tbl_map(lsp_to_fzf, items)
-    fzf(source, jump, label, true, true)
-  end
+local function symbol_handler(_, label, result, _, bufnr)
+  local items = lsp.util.symbols_to_items(result, bufnr)
+  local source = vim.tbl_map(lsp_to_fzf, items)
+  fzf(source, jump, label, true, true)
 end
 
-local function make_location_handler(label)
-  return function(_, _, result)
-    if not result or vim.tbl_isempty(result) then
-      echo('None', fmt('No %s found.', string.lower(label)))
-      return
-    end
-    result = vim.tbl_islist(result) and result or {result}
-    -- Jump immediately if there is only one location
-    if #result == 1 then
-      lsp.util.jump_to_location(result[1])
-      return
-    end
-    local items = lsp.util.locations_to_items(result)
-    local source = vim.tbl_map(lsp_to_fzf, items)
-    fzf(source, jump, label, true, true)
+local function location_handler(_, label, result)
+  result = vim.tbl_islist(result) and result or {result}
+  -- Jump immediately if there is only one location
+  if #result == 1 then
+    lsp.util.jump_to_location(result[1])
+    return
   end
+  local items = lsp.util.locations_to_items(result)
+  local source = vim.tbl_map(lsp_to_fzf, items)
+  fzf(source, jump, label, true, true)
 end
 
-local function make_call_hierarchy_handler(label, direction)
-  return function(_, _, result)
-    if not result or vim.tbl_isempty(result) then
-      echo('None', fmt('No %s found.', string.lower(label)))
-      return
-    end
+local function code_action_handler(_, label, actions)
+  local choices = {}
+  current_actions = {}
+  for i, action in ipairs(actions) do
+    local text = fmt("%d. %s", i, action.title)
+    table.insert(choices, text)
+    current_actions[text] = action
+  end
+  fzf(choices, apply_action, label, false, false)
+end
+
+local function make_call_hierarchy_handler(direction)
+  return function(_, label, result)
     local items = {}
     for _, call_hierarchy_call in pairs(result) do
       local call_hierarchy_item = call_hierarchy_call[direction]
@@ -168,23 +163,6 @@ local function make_call_hierarchy_handler(label, direction)
     end
     local source = vim.tbl_map(lsp_to_fzf, items)
     fzf(source, jump, label, true, true)
-  end
-end
-
-local function make_code_action_handler(label)
-  return function(_, _, actions)
-    if not actions or vim.tbl_isempty(actions) then
-      echo('None', fmt('No %s available.', string.lower(label)))
-      return
-    end
-    local choices = {}
-    current_actions = {}
-    for i, action in ipairs(actions) do
-      local text = fmt("%d. %s", i, action.title)
-      table.insert(choices, text)
-      current_actions[text] = action
-    end
-    fzf(choices, apply_action, label, false, false)
   end
 end
 
@@ -211,18 +189,44 @@ local function diagnostics_cmd(diagnostics)
 end
 
 -------------------- SETUP ---------------------------------
-local handlers = {
-  ['callHierarchy/incomingCalls'] = make_call_hierarchy_handler('Incoming Calls', 'from'),
-  ['callHierarchy/outgoingCalls'] = make_call_hierarchy_handler('Outgoing Calls', 'to'),
-  ['textDocument/codeAction'] = make_code_action_handler('Code Actions'),
-  ['textDocument/declaration'] = make_location_handler('Declarations'),
-  ['textDocument/definition'] = make_location_handler('Definitions'),
-  ['textDocument/documentSymbol'] = make_symbol_handler('Document Symbols'),
-  ['textDocument/implementation'] = make_location_handler('Implementations'),
-  ['textDocument/references'] = make_location_handler('References'),
-  ['textDocument/typeDefinition'] = make_location_handler('Type Definitions'),
-  ['workspace/symbol'] = make_symbol_handler('Workspace Symbols'),
+local labels = {
+  ['callHierarchy/incomingCalls'] = 'Incoming Calls',
+  ['callHierarchy/outgoingCalls'] = 'Outgoing Calls',
+  ['textDocument/codeAction'] = 'Code Actions',
+  ['textDocument/declaration'] = 'Declarations',
+  ['textDocument/definition'] = 'Definitions',
+  ['textDocument/documentSymbol'] = 'Document Symbols',
+  ['textDocument/implementation'] = 'Implementations',
+  ['textDocument/references'] = 'References',
+  ['textDocument/typeDefinition'] = 'Type Definitions',
+  ['workspace/symbol'] = 'Workspace Symbols',
 }
+
+local handlers = {
+  ['callHierarchy/incomingCalls'] = make_call_hierarchy_handler('from'),
+  ['callHierarchy/outgoingCalls'] = make_call_hierarchy_handler('to'),
+  ['textDocument/codeAction'] = code_action_handler,
+  ['textDocument/declaration'] = location_handler,
+  ['textDocument/definition'] = location_handler,
+  ['textDocument/documentSymbol'] = symbol_handler,
+  ['textDocument/implementation'] = location_handler,
+  ['textDocument/references'] = location_handler,
+  ['textDocument/typeDefinition'] = location_handler,
+  ['workspace/symbol'] = symbol_handler,
+}
+
+local function wrap_handler(handler)
+  return function(err, method, result, client_id, bufnr, config)
+    local label = labels[method]
+    if err then
+      return echo('ErrorMsg', err.message)
+    end
+    if not result or vim.tbl_isempty(result) then
+      return echo('None', fmt('No %s found.', string.lower(label)))
+    end
+    return handler(err, label, result, client_id, bufnr, config)
+  end
+end
 
 local function load_fzf_opts()
   local fzf_opts = {}
@@ -240,7 +244,9 @@ local function setup(user_opts)
   opts = vim.tbl_extend('keep', user_opts, opts)
   -- Set LSP handlers
   if opts.methods == 'all' then opts.methods = vim.tbl_keys(handlers) end
-  for _, m in ipairs(opts.methods) do lsp.handlers[m] = handlers[m] end
+  for _, m in ipairs(opts.methods) do
+    lsp.handlers[m] = wrap_handler(handlers[m])
+  end
 end
 
 ------------------------------------------------------------
