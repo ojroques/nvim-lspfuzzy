@@ -67,10 +67,13 @@ end
 local function apply_action(entries)
   if not entries or #entries < 2 then return end
   local action = current_actions[entries[2]]
-  if action.edit then
-    lsp.util.apply_workspace_edit(action.edit)
-  elseif type(action.command) == "table" then
-    lsp.buf.execute_command(action.command)
+  if action.edit or type(action.command) == 'table' then
+    if action.edit then
+      lsp.util.apply_workspace_edit(action.edit)
+    end
+    if type(action.command) == 'table' then
+      lsp.buf.execute_command(action.command)
+    end
   else
     lsp.buf.execute_command(action)
   end
