@@ -1,5 +1,4 @@
 -- nvim-lspfuzzy
--- By Olivier Roques
 -- github.com/ojroques
 
 -------------------- VARIABLES -----------------------------
@@ -188,42 +187,28 @@ local function diagnostics_cmd(diagnostics)
 end
 
 -------------------- SETUP ---------------------------------
-local labels = {
-  ['callHierarchy/incomingCalls'] = 'Incoming Calls',
-  ['callHierarchy/outgoingCalls'] = 'Outgoing Calls',
-  ['textDocument/codeAction'] = 'Code Actions',
-  ['textDocument/declaration'] = 'Declarations',
-  ['textDocument/definition'] = 'Definitions',
-  ['textDocument/documentSymbol'] = 'Document Symbols',
-  ['textDocument/implementation'] = 'Implementations',
-  ['textDocument/references'] = 'References',
-  ['textDocument/typeDefinition'] = 'Type Definitions',
-  ['workspace/symbol'] = 'Workspace Symbols',
-}
-
 local handlers = {
-  ['callHierarchy/incomingCalls'] = make_call_hierarchy_handler('from'),
-  ['callHierarchy/outgoingCalls'] = make_call_hierarchy_handler('to'),
-  ['textDocument/codeAction'] = code_action_handler,
-  ['textDocument/declaration'] = location_handler,
-  ['textDocument/definition'] = location_handler,
-  ['textDocument/documentSymbol'] = symbol_handler,
-  ['textDocument/implementation'] = location_handler,
-  ['textDocument/references'] = location_handler,
-  ['textDocument/typeDefinition'] = location_handler,
-  ['workspace/symbol'] = symbol_handler,
+  ['callHierarchy/incomingCalls'] = {label = 'Incoming Calls', target = make_call_hierarchy_handler('from')},
+  ['callHierarchy/outgoingCalls'] = {label = 'Outgoing Calls', target = make_call_hierarchy_handler('to')},
+  ['textDocument/codeAction'] = {label = 'Code Actions', target = code_action_handler},
+  ['textDocument/declaration'] = {label = 'Declarations', target = location_handler},
+  ['textDocument/definition'] = {label = 'Definitions', target = location_handler},
+  ['textDocument/documentSymbol'] = {label = 'Document Symbols', target = symbol_handler},
+  ['textDocument/implementation'] = {label = 'Implementations', target = location_handler},
+  ['textDocument/references'] = {label = 'References', target = location_handler},
+  ['textDocument/typeDefinition'] = {label = 'Type Definitions', target = location_handler},
+  ['workspace/symbol'] = {label = 'Workspace Symbols', target = symbol_handler},
 }
 
 local function wrap_handler(handler)
   return function(err, method, result, client_id, bufnr, config)
-    local label = labels[method]
     if err then
       return echo('ErrorMsg', err.message)
     end
     if not result or vim.tbl_isempty(result) then
-      return echo('None', fmt('No %s found', string.lower(label)))
+      return echo('None', fmt('No %s found', string.lower(handler.label)))
     end
-    return handler(err, label, result, client_id, bufnr, config)
+    return handler.target(err, handler.label, result, client_id, bufnr, config)
   end
 end
 
