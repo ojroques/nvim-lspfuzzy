@@ -10,6 +10,7 @@ local current_actions = {}  -- hold all currently available code actions
 -------------------- OPTIONS -------------------------------
 local opts = {
   methods = 'all',         -- either 'all' or a list of LSP methods
+  jump_one = true,         -- jump immediately if there is only one location
   fzf_preview = {          -- arguments to the FZF '--preview-window' option
     'right:+{2}-/2'          -- preview on the right and centered on entry
   },
@@ -127,7 +128,7 @@ end
 local function location_handler(_, label, result)
   result = vim.tbl_islist(result) and result or {result}
   -- Jump immediately if there is only one location
-  if #result == 1 then
+  if opts.jump_one and #result == 1 then
     return lsp.util.jump_to_location(result[1])
   end
   local items = lsp.util.locations_to_items(result)
