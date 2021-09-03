@@ -226,7 +226,7 @@ end
 local function setup(user_opts)
   -- Load FZF and user settings
   opts = vim.tbl_extend('keep', load_fzf_opts(), opts)
-  opts = vim.tbl_extend('keep', user_opts, opts)
+  if user_opts then opts = vim.tbl_extend('keep', user_opts, opts) end
   -- Set LSP handlers
   if opts.methods == 'all' then opts.methods = vim.tbl_keys(handlers) end
   for _, m in ipairs(opts.methods) do
