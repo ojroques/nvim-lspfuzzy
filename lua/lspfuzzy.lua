@@ -48,7 +48,7 @@ local function fzf_to_lsp(entry)
 end
 
 local function jump_to_location(location)
-  lsp.util.jump_to_location(locations[1])
+  lsp.util.jump_to_location(location)
   if type(opts.callback) == 'function' then
     opts.callback()
   end
