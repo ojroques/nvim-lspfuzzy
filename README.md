@@ -62,6 +62,7 @@ with their default settings:
 require('lspfuzzy').setup {
   methods = 'all',         -- either 'all' or a list of LSP methods (see below)
   jump_one = true,         -- jump immediately if there is only one location
+  callback = nil,          -- callback called after jumping to a location
   fzf_preview = {          -- arguments to the FZF '--preview-window' option
     'right:+{2}-/2'          -- preview on the right and centered on entry
   },
