@@ -56,29 +56,40 @@ end
 
 -------------------- FZF FUNCTIONS -------------------------
 local function jump(entries)
-  if not entries or #entries < 2 then return end
+  if not entries or #entries < 2 then
+    return
+  end
+
   local key = table.remove(entries, 1)
   local locations = vim.tbl_map(fzf_to_lsp, entries)
+
   -- A FZF action was used
   if opts.fzf_action[key] then
     cmd(opts.fzf_action[key])
   end
+
   -- Use the quickfix list to store remaining locations
   if #locations > 1 then
     lsp.util.set_qflist(lsp.util.locations_to_items(locations))
     cmd 'copen'
     cmd 'wincmd p'
   end
+
   jump_to_location(locations[1])
 end
 
 local function apply_action(entries)
-  if not entries or #entries < 2 then return end
+  if not entries or #entries < 2 then
+    return
+  end
+
   local action = current_actions[entries[2]]
+
   if action.edit or type(action.command) == 'table' then
     if action.edit then
       lsp.util.apply_workspace_edit(action.edit)
     end
+
     if type(action.command) == 'table' then
       lsp.buf.execute_command(action.command)
     end
@@ -95,6 +106,7 @@ local function build_fzf_opts(label, preview, multi)
     '--keep-right',
     '--prompt', prompt,
   }
+
   -- Enable multi-selection
   if multi then
     vim.list_extend(fzf_opts, {
@@ -102,17 +114,20 @@ local function build_fzf_opts(label, preview, multi)
       '--multi',
     })
   end
+
   -- Enable FZF actions
   if opts.fzf_action and not vim.tbl_isempty(opts.fzf_action) then
     vim.list_extend(fzf_opts, {
       '--expect', table.concat(vim.tbl_keys(opts.fzf_action), ',')
     })
   end
+
   -- Enable preview with fzf.vim
   if g.loaded_fzf_vim and preview and opts.fzf_preview then
     local args = fn['fzf#vim#with_preview'](unpack(opts.fzf_preview)).options
     vim.list_extend(fzf_opts, args)
   end
+
   return fzf_opts
 end
 
@@ -120,6 +135,7 @@ local function fzf(source, sink, label, preview, multi)
   if not g.loaded_fzf then
     return echo('WarningMsg', 'FZF is not loaded')
   end
+
   local fzf_opts = build_fzf_opts(label, preview, multi)
   local fzf_opts_wrap = fn['fzf#wrap']({source = source, options = fzf_opts})
   fzf_opts_wrap['sink*'] = sink  -- 'sink*' needs to be defined outside wrap()
@@ -135,10 +151,11 @@ end
 
 local function location_handler(_, label, result)
   result = vim.tbl_islist(result) and result or {result}
-  -- Jump immediately if there is only one location
+
   if opts.jump_one and #result == 1 then
     return jump_to_location(result[1])
   end
+
   local items = lsp.util.locations_to_items(result)
   local source = vim.tbl_map(lsp_to_fzf, items)
   fzf(source, jump, label, true, true)
@@ -147,17 +164,20 @@ end
 local function code_action_handler(_, label, actions)
   local choices = {}
   current_actions = {}
+
   for i, action in ipairs(actions) do
     local text = fmt("%d. %s", i, action.title)
     table.insert(choices, text)
     current_actions[text] = action
   end
+
   fzf(choices, apply_action, label, false, false)
 end
 
 local function make_call_hierarchy_handler(direction)
   return function(_, label, result)
     local items = {}
+
     for _, call_hierarchy_call in pairs(result) do
       local call_hierarchy_item = call_hierarchy_call[direction]
       for _, range in pairs(call_hierarchy_call.fromRanges) do
@@ -169,6 +189,7 @@ local function make_call_hierarchy_handler(direction)
         })
       end
     end
+
     local source = vim.tbl_map(lsp_to_fzf, items)
     fzf(source, jump, label, true, true)
   end
@@ -178,6 +199,7 @@ end
 local function diagnostics_cmd(diagnostics)
   local label = 'Diagnostics'
   local items = {}
+
   for bufnr, diags in pairs(diagnostics) do
     for _, diag in ipairs(diags) do
       table.insert(items, {
@@ -188,9 +210,11 @@ local function diagnostics_cmd(diagnostics)
       })
     end
   end
+
   if vim.tbl_isempty(items) then
     return echo('None', fmt('No %s available', string.lower(label)))
   end
+
   local source = vim.tbl_map(lsp_to_fzf, items)
   fzf(source, jump, label, true, true)
 end
@@ -214,9 +238,11 @@ local function wrap_handler(handler)
     if err then
       return echo('ErrorMsg', err.message)
     end
+
     if not result or vim.tbl_isempty(result) then
       return echo('None', fmt('No %s found', string.lower(handler.label)))
     end
+
     return handler.target(err, handler.label, result, client_id, bufnr, config)
   end
 end
@@ -225,18 +251,27 @@ local function load_fzf_opts()
   local fzf_opts = {}
   fzf_opts.fzf_action = g.fzf_action
   fzf_opts.fzf_preview = g.fzf_preview_window
+
   if type(fzf_opts.fzf_preview) == 'string' then
     fzf_opts.fzf_preview = {fzf_opts.fzf_preview}
   end
+
   return fzf_opts
 end
 
 local function setup(user_opts)
-  -- Load FZF and user settings
   opts = vim.tbl_extend('keep', load_fzf_opts(), opts)
-  if user_opts then opts = vim.tbl_extend('keep', user_opts, opts) end
+
+  -- Load FZF and user settings
+  if user_opts then
+    opts = vim.tbl_extend('keep', user_opts, opts)
+  end
+
   -- Set LSP handlers
-  if opts.methods == 'all' then opts.methods = vim.tbl_keys(handlers) end
+  if opts.methods == 'all' then
+    opts.methods = vim.tbl_keys(handlers)
+  end
+
   for _, m in ipairs(opts.methods) do
     lsp.handlers[m] = wrap_handler(handlers[m])
   end
