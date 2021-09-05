@@ -11,7 +11,7 @@ local current_actions = {}  -- hold all currently available code actions
 local opts = {
   methods = 'all',         -- either 'all' or a list of LSP methods
   jump_one = true,         -- jump immediately if there is only one location
-  callback = nil,          -- callback which will be called after jumping to the target location
+  callback = nil,          -- callback called after jumping to a location
   fzf_preview = {          -- arguments to the FZF '--preview-window' option
     'right:+{2}-/2'          -- preview on the right and centered on entry
   },
@@ -47,6 +47,13 @@ local function fzf_to_lsp(entry)
   return {uri = uri, range = range}
 end
 
+local function jump_to_location(location)
+  lsp.util.jump_to_location(locations[1])
+  if type(opts.callback) == 'function' then
+    opts.callback()
+  end
+end
+
 -------------------- FZF FUNCTIONS -------------------------
 local function jump(entries)
   if not entries or #entries < 2 then return end
@@ -62,11 +69,7 @@ local function jump(entries)
     cmd 'copen'
     cmd 'wincmd p'
   end
-  lsp.util.jump_to_location(locations[1])
-
-  if opts.callback ~= nil then
-      opts.callback()
-  end
+  jump_to_location(locations[1])
 end
 
 local function apply_action(entries)
@@ -134,11 +137,7 @@ local function location_handler(_, label, result)
   result = vim.tbl_islist(result) and result or {result}
   -- Jump immediately if there is only one location
   if opts.jump_one and #result == 1 then
-    lsp.util.jump_to_location(result[1])
-    if opts.callback ~= nil then
-        opts.callback()
-    end
-    return
+    return jump_to_location(result[1])
   end
   local items = lsp.util.locations_to_items(result)
   local source = vim.tbl_map(lsp_to_fzf, items)
