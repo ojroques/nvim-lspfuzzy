@@ -143,13 +143,13 @@ local function fzf(source, sink, label, preview, multi)
 end
 
 -------------------- LSP HANDLERS --------------------------
-local function symbol_handler(_, label, result, _, bufnr)
+local function symbol_handler(label, result, _, bufnr)
   local items = lsp.util.symbols_to_items(result, bufnr)
   local source = vim.tbl_map(lsp_to_fzf, items)
   fzf(source, jump, label, true, true)
 end
 
-local function location_handler(_, label, result)
+local function location_handler(label, result)
   result = vim.tbl_islist(result) and result or {result}
 
   if opts.jump_one and #result == 1 then
@@ -161,7 +161,7 @@ local function location_handler(_, label, result)
   fzf(source, jump, label, true, true)
 end
 
-local function code_action_handler(_, label, actions)
+local function code_action_handler(label, actions)
   local choices = {}
   current_actions = {}
 
@@ -175,7 +175,7 @@ local function code_action_handler(_, label, actions)
 end
 
 local function make_call_hierarchy_handler(direction)
-  return function(_, label, result)
+  return function(label, result)
     local items = {}
 
     for _, call_hierarchy_call in pairs(result) do
@@ -243,7 +243,7 @@ local function wrap_handler(handler)
       return echo('None', fmt('No %s found', string.lower(handler.label)))
     end
 
-    return handler.target(err, handler.label, result, client_id, bufnr, config)
+    return handler.target(handler.label, result, client_id, bufnr, config)
   end
 end
 
