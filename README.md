@@ -7,18 +7,11 @@ It works by redefining LSP handlers so that they call FZF. Therefore you don't
 need to change any of your exising LSP mappings. It's also small and written
 entirely in Lua.
 
-The plugin is compatible only with Neovim 0.5+. **If you're using Neovim master,
-please check out the `dev` branch** (due to
-[breaking changes](https://github.com/neovim/neovim/pull/15504) to LSP
-handlers).
+The plugin is compatible only with Neovim 0.5+.
 
 ![demo](./demo.gif)
 
 ## Installation
-**If you're using Neovim master, please check out the `dev` branch** (due to
-[breaking changes](https://github.com/neovim/neovim/pull/15504) to LSP
-handlers).
-
 With [packer.nvim](https://github.com/wbthomason/packer.nvim):
 ```lua
 use {
