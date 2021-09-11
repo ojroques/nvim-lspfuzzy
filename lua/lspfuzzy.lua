@@ -143,8 +143,8 @@ local function fzf(source, sink, label, preview, multi)
 end
 
 -------------------- LSP HANDLERS --------------------------
-local function symbol_handler(label, result, _, bufnr)
-  local items = lsp.util.symbols_to_items(result, bufnr)
+local function symbol_handler(label, result, ctx)
+  local items = lsp.util.symbols_to_items(result, ctx.bufnr)
   local source = vim.tbl_map(lsp_to_fzf, items)
   fzf(source, jump, label, true, true)
 end
@@ -234,7 +234,7 @@ local handlers = {
 }
 
 local function wrap_handler(handler)
-  return function(err, method, result, client_id, bufnr, config)
+  local wrapper = function(err, result, ctx, config)
     if err then
       return echo('ErrorMsg', err.message)
     end
@@ -243,8 +243,18 @@ local function wrap_handler(handler)
       return echo('None', fmt('No %s found', string.lower(handler.label)))
     end
 
-    return handler.target(handler.label, result, client_id, bufnr, config)
+    return handler.target(handler.label, result, ctx, config)
   end
+
+  -- See neovim#15504
+  if not fn.has('nvim-0.5.1') then
+    return function(err, method, result, client_id, bufnr, config)
+      local ctx = {method = method, client_id = client_id, bufnr = bufnr}
+      return wrapper(err, result, ctx, config)
+    end
+  end
+
+  return wrapper
 end
 
 local function load_fzf_opts()
