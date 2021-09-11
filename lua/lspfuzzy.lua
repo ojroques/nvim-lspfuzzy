@@ -247,7 +247,7 @@ local function wrap_handler(handler)
   end
 
   -- See neovim#15504
-  if not fn.has('nvim-0.5.1') then
+  if fn.has('nvim-0.5.1') == 0 then
     return function(err, method, result, client_id, bufnr, config)
       local ctx = {method = method, client_id = client_id, bufnr = bufnr}
       return wrapper(err, result, ctx, config)
