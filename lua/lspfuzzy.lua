@@ -234,7 +234,7 @@ local handlers = {
 }
 
 local function wrap_handler(handler)
-  return function(err, result, ctx, config)
+  local wrapper = function(err, result, ctx, config)
     if err then
       return echo('ErrorMsg', err.message)
     end
@@ -245,6 +245,16 @@ local function wrap_handler(handler)
 
     return handler.target(handler.label, result, ctx, config)
   end
+
+  -- See neovim#15504
+  if not fn.has('nvim-0.5.1') then
+    return function(err, method, result, client_id, bufnr, config)
+      local ctx = {method = method, client_id = client_id, bufnr = bufnr}
+      return wrapper(err, result, ctx, config)
+    end
+  end
+
+  return wrapper
 end
 
 local function load_fzf_opts()
