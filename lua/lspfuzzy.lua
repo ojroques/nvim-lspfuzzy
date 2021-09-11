@@ -234,16 +234,30 @@ local handlers = {
 }
 
 local function wrap_handler(handler)
-  return function(err, method, result, client_id, bufnr, config)
-    if err then
-      return echo('ErrorMsg', err.message)
-    end
+  if vim.fn.has("nvim-0.5.1") then
+    return function(err, result, context, config)
+      if err then
+          return echo('ErrorMsg', err.message)
+      end
 
-    if not result or vim.tbl_isempty(result) then
-      return echo('None', fmt('No %s found', string.lower(handler.label)))
-    end
+      if not result or vim.tbl_isempty(result) then
+          return echo('None', fmt('No %s found', string.lower(handler.label)))
+      end
 
-    return handler.target(handler.label, result, client_id, bufnr, config)
+      return handler.target(handler.label, result, context.client_id, context.bufnr, config)
+    end
+  else
+    return function(err, method, result, client_id, bufnr, config)
+      if err then
+          return echo('ErrorMsg', err.message)
+      end
+
+      if not result or vim.tbl_isempty(result) then
+          return echo('None', fmt('No %s found', string.lower(handler.label)))
+      end
+
+      return handler.target(handler.label, result, client_id, bufnr, config)
+    end
   end
 end
 
