@@ -43,8 +43,11 @@ lua require('lspfuzzy').setup {}
 
 In addition, the plugin creates the following commands:
 * `:LspDiagnostics <bufnr>`: list diagnostics from given buffer (use `0` for
-  current buffer)
-* `:LspDiagnosticsAll`: list diagnostics from all buffers
+  current buffer).
+* `:LspDiagnosticsAll`: list diagnostics from all buffers.
+* `:LspFuzzyLast`: re-open the last results (requires `save_last = true`, see
+  [Configuration](#configuration)). Only for jump results: symbols / locations /
+  diagnostics.
 
 By default the following FZF actions are available:
 * <kbd>**tab**</kbd> : select multiple entries
@@ -63,6 +66,7 @@ require('lspfuzzy').setup {
   methods = 'all',         -- either 'all' or a list of LSP methods (see below)
   jump_one = true,         -- jump immediately if there is only one location
   callback = nil,          -- callback called after jumping to a location
+  save_last = false,       -- save last results for the :LspFuzzyLast command
   fzf_preview = {          -- arguments to the FZF '--preview-window' option
     'right:+{2}-/2'          -- preview on the right and centered on entry
   },
