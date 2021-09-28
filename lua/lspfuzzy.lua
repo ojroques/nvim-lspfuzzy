@@ -6,12 +6,14 @@ local api, cmd, fn, g, vim = vim.api, vim.cmd, vim.fn, vim.g, vim
 local lsp = require 'vim.lsp'
 local fmt = string.format
 local current_actions = {}  -- hold all currently available code actions
+local last_results = {}     -- hold last results for the :LspFuzzyLast command
 
 -------------------- OPTIONS -------------------------------
 local opts = {
   methods = 'all',         -- either 'all' or a list of LSP methods
   jump_one = true,         -- jump immediately if there is only one location
   callback = nil,          -- callback called after jumping to a location
+  save_last = false,       -- save last results for the :LspFuzzyLast command
   fzf_preview = {          -- arguments to the FZF '--preview-window' option
     'right:+{2}-/2'          -- preview on the right and centered on entry
   },
@@ -136,6 +138,11 @@ local function fzf(source, sink, label, preview, multi)
     return echo('WarningMsg', 'FZF is not loaded')
   end
 
+  -- Save jump results for the :LspFuzzyLast command
+  if opts.save_last and sink == jump then
+    last_results = {source = source, label = label, preview = preview, multi = multi}
+  end
+
   local fzf_opts = build_fzf_opts(label, preview, multi)
   local fzf_opts_wrap = fn['fzf#wrap']({source = source, options = fzf_opts})
   fzf_opts_wrap['sink*'] = sink  -- 'sink*' needs to be defined outside wrap()
@@ -219,6 +226,21 @@ local function diagnostics_cmd(diagnostics)
   fzf(source, jump, label, true, true)
 end
 
+local function last_results_cmd()
+  if not opts.save_last then
+    echo('WarningMsg', "The 'save_last' option is set to false")
+    return
+  end
+
+  if not last_results or vim.tbl_isempty(last_results) then
+    echo('None', 'No location results to display yet')
+    return
+  end
+
+  local label = fmt("%s (last)", last_results.label)
+  fzf(last_results.source, jump, label, last_results.preview, last_results.multi)
+end
+
 -------------------- SETUP ---------------------------------
 local handlers = {
   ['callHierarchy/incomingCalls'] = {label = 'Incoming Calls', target = make_call_hierarchy_handler('from')},
@@ -295,6 +317,9 @@ return {
   end,
   diagnostics_all = function()
     diagnostics_cmd(lsp.diagnostic.get_all())
+  end,
+  last_results = function()
+    last_results_cmd()
   end,
   setup = setup,
 }
