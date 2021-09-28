@@ -6,14 +6,14 @@ local api, cmd, fn, g, vim = vim.api, vim.cmd, vim.fn, vim.g, vim
 local lsp = require 'vim.lsp'
 local fmt = string.format
 local current_actions = {}  -- hold all currently available code actions
-local last_results = {}     -- hold last results for the :LspFuzzyLast command
+local last_results = {}     -- hold last location results
 
 -------------------- OPTIONS -------------------------------
 local opts = {
   methods = 'all',         -- either 'all' or a list of LSP methods
   jump_one = true,         -- jump immediately if there is only one location
   callback = nil,          -- callback called after jumping to a location
-  save_last = false,       -- save last results for the :LspFuzzyLast command
+  save_last = false,       -- save last location results for the :LspFuzzyLast command
   fzf_preview = {          -- arguments to the FZF '--preview-window' option
     'right:+{2}-/2'          -- preview on the right and centered on entry
   },
