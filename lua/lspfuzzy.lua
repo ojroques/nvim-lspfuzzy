@@ -299,13 +299,22 @@ local function setup(user_opts)
     opts = vim.tbl_extend('keep', user_opts, opts)
   end
 
+  -- See neovim#15818
+  if fn.has('nvim-0.5.2') == 1 then
+    handlers['textDocument/codeAction'] = nil
+  end
+
   -- Set LSP handlers
   if opts.methods == 'all' then
     opts.methods = vim.tbl_keys(handlers)
   end
 
   for _, m in ipairs(opts.methods) do
-    lsp.handlers[m] = wrap_handler(handlers[m])
+    if fn.has('nvim-0.5.2') == 1 and m == 'textDocument/codeAction' then
+      echo('WarningMsg', 'Code Actions handler cannot be overriden in Neovim 0.5.2+')
+    else
+      lsp.handlers[m] = wrap_handler(handlers[m])
+    end
   end
 end
 
