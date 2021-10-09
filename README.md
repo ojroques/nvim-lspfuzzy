@@ -94,7 +94,7 @@ You can enable FZF only for some LSP methods by passing them as a list to the
 ```
 callHierarchy/incomingCalls
 callHierarchy/outgoingCalls
-textDocument/codeAction
+textDocument/codeAction  // only for neovim <= v0.5.1
 textDocument/declaration
 textDocument/definition
 textDocument/documentSymbol
@@ -120,6 +120,11 @@ vim.g.fzf_preview_window = {'down:+{2}-/2'}
 The plugin uses the filename embedded in the FZF entry currently selected to
 jump to the correct location. Therefore it must resolve to a valid path: for
 instance `:.` or `:p` can be used but not `:t`.
+
+#### Code Actions do not use FZF
+The handler for code actions cannot be overriden anymore in Neovim 0.5.2+, see
+[neovim#15848](https://github.com/neovim/neovim/issues/15848). You can use the
+default quickfix window instead.
 
 ## License
 [LICENSE](./LICENSE)
