@@ -17,10 +17,10 @@ local opts = {
   fzf_preview = {          -- arguments to the FZF '--preview-window' option
     'right:+{2}-/2'          -- preview on the right and centered on entry
   },
-  fzf_action = {           -- FZF actions
-    ['ctrl-t'] = 'tabedit',  -- go to location in a new tab
-    ['ctrl-v'] = 'vsplit',   -- go to location in a vertical split
-    ['ctrl-x'] = 'split',    -- go to location in a horizontal split
+  fzf_action = {               -- FZF actions
+    ['ctrl-t'] = 'tab split',  -- go to location in a new tab
+    ['ctrl-v'] = 'vsplit',     -- go to location in a vertical split
+    ['ctrl-x'] = 'split',      -- go to location in a horizontal split
   },
   fzf_modifier = ':~:.',   -- format FZF entries, see |filename-modifiers|
   fzf_trim = true,         -- trim FZF entries
@@ -49,7 +49,10 @@ local function fzf_to_lsp(entry)
   return {uri = uri, range = range}
 end
 
-local function jump_to_location(location)
+local function jump_to_location(action, location)
+  if action then
+    cmd(fmt('%s %s', action, vim.uri_to_fname(location.uri)))
+  end
   lsp.util.jump_to_location(location)
   if type(opts.callback) == 'function' then
     opts.callback()
@@ -65,11 +68,6 @@ local function jump(entries)
   local key = table.remove(entries, 1)
   local locations = vim.tbl_map(fzf_to_lsp, entries)
 
-  -- A FZF action was used
-  if opts.fzf_action[key] then
-    cmd(opts.fzf_action[key])
-  end
-
   -- Use the quickfix list to store remaining locations
   if #locations > 1 then
     lsp.util.set_qflist(lsp.util.locations_to_items(locations))
@@ -77,7 +75,7 @@ local function jump(entries)
     cmd 'wincmd p'
   end
 
-  jump_to_location(locations[1])
+  jump_to_location(opts.fzf_action[key], locations[1])
 end
 
 local function apply_action(entries)
@@ -160,7 +158,7 @@ local function location_handler(label, result)
   result = vim.tbl_islist(result) and result or {result}
 
   if opts.jump_one and #result == 1 then
-    return jump_to_location(result[1])
+    return jump_to_location(nil, result[1])
   end
 
   local items = lsp.util.locations_to_items(result)
