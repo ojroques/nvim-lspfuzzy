@@ -71,7 +71,7 @@ local function jump(entries)
 
   if type(action) == 'function' then
     action(entries)
-    action = nil
+    return
   end
 
   -- Use the quickfix list to store remaining locations
