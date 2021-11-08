@@ -67,6 +67,12 @@ local function jump(entries)
 
   local key = table.remove(entries, 1)
   local locations = vim.tbl_map(fzf_to_lsp, entries)
+  local action = opts.fzf_action[key]
+
+  if type(action) == 'function' then
+    action(entries)
+    action = nil
+  end
 
   -- Use the quickfix list to store remaining locations
   if #locations > 1 then
@@ -75,7 +81,7 @@ local function jump(entries)
     cmd 'wincmd p'
   end
 
-  jump_to_location(opts.fzf_action[key], locations[1])
+  jump_to_location(action, locations[1])
 end
 
 local function apply_action(entries)
