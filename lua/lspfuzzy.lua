@@ -1,4 +1,5 @@
 -- nvim-lspfuzzy
+-- By Olivier Roques
 -- github.com/ojroques
 
 -------------------- VARIABLES -----------------------------
