@@ -2,12 +2,9 @@
 
 This plugin makes the Neovim LSP client use
 [FZF](https://github.com/junegunn/fzf) to display results and navigate the code.
+It works by redefining your LSP handlers so that they call FZF.
 
-It works by redefining LSP handlers so that they call FZF. Therefore you don't
-need to change any of your exising LSP mappings. It's also small and written
-entirely in Lua.
-
-The plugin is compatible only with Neovim 0.5+.
+**The plugin requires Neovim 0.6+.** For Neovim 0.5, use version `v0.1.0`.
 
 ![demo](./demo.gif)
 
@@ -46,7 +43,7 @@ In addition, the plugin creates the following commands:
   current buffer).
 * `:LspDiagnosticsAll`: list diagnostics from all buffers.
 * `:LspFuzzyLast`: re-open the last results (requires `save_last = true`, see
-  [Configuration](#configuration)). Only for location results.
+  [Configuration](#configuration)).
 
 By default the following FZF actions are available:
 * <kbd>**tab**</kbd> : select multiple entries
@@ -64,8 +61,8 @@ with their default settings:
 require('lspfuzzy').setup {
   methods = 'all',         -- either 'all' or a list of LSP methods (see below)
   jump_one = true,         -- jump immediately if there is only one location
-  callback = nil,          -- callback called after jumping to a location
   save_last = false,       -- save last location results for the :LspFuzzyLast command
+  callback = nil,          -- callback called after jumping to a location
   fzf_preview = {          -- arguments to the FZF '--preview-window' option
     'right:+{2}-/2'          -- preview on the right and centered on entry
   },
@@ -94,7 +91,6 @@ You can enable FZF only for some LSP methods by passing them as a list to the
 ```
 callHierarchy/incomingCalls
 callHierarchy/outgoingCalls
-textDocument/codeAction  // only for neovim <= v0.5.1
 textDocument/declaration
 textDocument/definition
 textDocument/documentSymbol
@@ -120,11 +116,6 @@ vim.g.fzf_preview_window = {'down:+{2}-/2'}
 The plugin uses the filename embedded in the FZF entry currently selected to
 jump to the correct location. Therefore it must resolve to a valid path: for
 instance `:.` or `:p` can be used but not `:t`.
-
-#### Code Actions do not use FZF
-The handler for code actions cannot be overriden anymore in Neovim 0.5.2+, see
-[neovim#15848](https://github.com/neovim/neovim/issues/15848). You can use the
-default quickfix window instead.
 
 ## License
 [LICENSE](./LICENSE)
