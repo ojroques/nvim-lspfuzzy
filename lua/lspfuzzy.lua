@@ -6,6 +6,9 @@
 local fmt = string.format
 local offset_encoding    -- hold client offset encoding (see :h vim.lsp.client)
 local last_results = {}  -- hold last location results
+local ansi_purple = '\u{001b}[35m'
+local ansi_green = '\u{001b}[32m'
+local ansi_reset = '\u{001b}[0m'
 
 -------------------- OPTIONS -------------------------------
 local opts = {
@@ -35,7 +38,11 @@ end
 local function lsp_to_fzf(item)
   local path = vim.fn.fnamemodify(item.filename, opts.fzf_modifier)
   local text = opts.fzf_trim and vim.trim(item.text) or item.text
-  return fmt('%s:%s:%s: %s', path, item.lnum, item.col, text)
+  return fmt(
+    ansi_purple .. '%s:'
+    .. ansi_green .. '%s:'
+    .. ansi_reset .. '%s: %s', path, item.lnum, item.col, text
+  )
 end
 
 local function fzf_to_lsp(entry)
