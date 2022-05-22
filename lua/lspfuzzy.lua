@@ -7,9 +7,9 @@ local fmt = string.format
 local offset_encoding    -- hold client offset encoding (see :h vim.lsp.client)
 local last_results = {}  -- hold last location results
 local ansi = {
-  reset = '\u{001b}[0m',
-  green = '\u{001b}[32m',
-  purple = '\u{001b}[35m',
+  reset = string.char(0x001b) .. '[0m',
+  green = string.char(0x001b) .. '[32m',
+  purple = string.char(0x001b) .. '[35m',
 }
 
 -------------------- OPTIONS -------------------------------
