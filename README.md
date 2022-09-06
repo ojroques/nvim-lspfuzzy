@@ -6,7 +6,7 @@ It works by redefining your LSP handlers so that they call FZF.
 
 **The plugin requires Neovim 0.6+.** For Neovim 0.5, use version `v0.1.0`.
 
-![demo](./demo.gif)
+![demo](https://user-images.githubusercontent.com/23409060/188602802-456cc524-e723-4142-94b3-98df04bf4897.gif)
 
 ## Installation
 With [packer.nvim](https://github.com/wbthomason/packer.nvim):
