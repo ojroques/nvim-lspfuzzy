@@ -6,6 +6,12 @@
 local fmt = string.format
 local offset_encoding    -- hold client offset encoding (see :h vim.lsp.client)
 local last_results = {}  -- hold last location results
+local diagnostics_str = {
+  [vim.diagnostic.severity.ERROR] = 'Error',
+  [vim.diagnostic.severity.WARN] = 'Warn',
+  [vim.diagnostic.severity.INFO] = 'Info',
+  [vim.diagnostic.severity.HINT] = 'Hint',
+}
 local ansi = {
   reset = string.char(0x001b) .. '[0m',
   green = string.char(0x001b) .. '[32m',
@@ -197,7 +203,7 @@ local function diagnostics_cmd(diagnostics)
   for _, diagnostic in ipairs(diagnostics) do
     table.insert(items, {
       filename = vim.api.nvim_buf_get_name(diagnostic.bufnr),
-      text = diagnostic.message,
+      text = fmt('[%s] %s', diagnostics_str[diagnostic.severity], diagnostic.message),
       lnum = diagnostic.lnum + 1,
       col = diagnostic.col + 1,
     })
