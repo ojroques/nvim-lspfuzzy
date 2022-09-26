@@ -6,16 +6,19 @@
 local fmt = string.format
 local offset_encoding    -- hold client offset encoding (see :h vim.lsp.client)
 local last_results = {}  -- hold last location results
-local diagnostics_str = {
-  [vim.diagnostic.severity.ERROR] = 'Error',
-  [vim.diagnostic.severity.WARN] = 'Warn',
-  [vim.diagnostic.severity.INFO] = 'Info',
-  [vim.diagnostic.severity.HINT] = 'Hint',
-}
 local ansi = {
   reset = string.char(0x001b) .. '[0m',
+  red = string.char(0x001b) .. '[31m',
   green = string.char(0x001b) .. '[32m',
+  yellow = string.char(0x001b) .. '[33m',
+  blue = string.char(0x001b) .. '[34m',
   purple = string.char(0x001b) .. '[35m',
+}
+local diagnostics_fmt = {
+  [vim.diagnostic.severity.ERROR] = {text = 'Error', ansi = ansi.red},
+  [vim.diagnostic.severity.WARN] = {text = 'Warn', ansi = ansi.yellow},
+  [vim.diagnostic.severity.INFO] = {text = 'Info', ansi = ansi.blue},
+  [vim.diagnostic.severity.HINT] = {text = 'Hint', ansi = ansi.reset},
 }
 
 -------------------- OPTIONS -------------------------------
@@ -198,12 +201,13 @@ end
 -------------------- COMMANDS ------------------------------
 local function diagnostics_cmd(diagnostics)
   local label = 'Diagnostics'
-  local items = {}
+  local items, severity = {}, {}
 
   for _, diagnostic in ipairs(diagnostics) do
+    severity = diagnostics_fmt[diagnostic.severity]
     table.insert(items, {
       filename = vim.api.nvim_buf_get_name(diagnostic.bufnr),
-      text = fmt('[%s] %s', diagnostics_str[diagnostic.severity], diagnostic.message),
+      text = fmt('%s[%s]%s %s', severity.ansi, severity.text, ansi.reset, diagnostic.message),
       lnum = diagnostic.lnum + 1,
       col = diagnostic.col + 1,
     })
