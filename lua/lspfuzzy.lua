@@ -92,7 +92,7 @@ local function jump(entries)
 
   -- Use the quickfix list to store remaining locations
   if #locations > 1 then
-    vim.lsp.util.set_qflist(vim.lsp.util.locations_to_items(locations, offset_encoding))
+    vim.fn.setqflist(vim.lsp.util.locations_to_items(locations, offset_encoding))
     vim.cmd 'copen'
     vim.cmd 'wincmd p'
   end
