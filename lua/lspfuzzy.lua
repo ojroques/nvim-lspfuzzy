@@ -166,7 +166,11 @@ local function symbol_handler(label, result, ctx)
 end
 
 local function location_handler(label, result)
-  result = vim.tbl_islist(result) and result or {result}
+  if vim.fn.has('nvim-0.10') == 1 then
+    result = vim.islist(result) and result or {result}
+  else
+    result = vim.tbl_islist(result) and result or {result}
+  end
 
   if opts.jump_one and #result == 1 then
     return jump_to_location(result[1])
