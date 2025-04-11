@@ -1,12 +1,10 @@
 # nvim-lspfuzzy
 
-This plugin makes the Neovim LSP client use [FZF](https://github.com/junegunn/fzf) to display
-results and navigate the code. It works by redefining your LSP handlers so that they call FZF.
+This plugin makes the Neovim LSP client use
+[FZF](https://github.com/junegunn/fzf) to display results and navigate the code.
+It works by redefining your LSP handlers so that they call FZF.
 
-**The plugin works in Neovim < 0.11 only**. Unfortunately, Neovim 0.11 introduced a breaking change
-to LSP handlers that causes LSP methods to no longer trigger handlers (see [Neovim 0.11
-changelog](https://neovim.io/doc/user/news-0.11.html#_lsp)). If you're using Neovim 0.11 or above,
-I encourage you to find an alternative solution.
+**The plugin requires Neovim 0.6+.** For Neovim 0.5, use version `v0.1.0`.
 
 ![demo](https://user-images.githubusercontent.com/23409060/188602802-456cc524-e723-4142-94b3-98df04bf4897.gif)
 
@@ -30,17 +28,23 @@ paq {'ojroques/nvim-lspfuzzy'}
 ```
 
 ## Usage
-Simply add this line to your *init.lua*:
+Add this line to your *init.lua*:
 ```lua
 require('lspfuzzy').setup {}
 ```
 
-If you're using a *.vimrc* or *init.vim*:
-```vim
-lua require('lspfuzzy').setup {}
+In addition, for Neovim 0.11 and above, you need to configure your LSP client:
+```lua
+local on_attach = function(client, _)
+  client.request = require('lspfuzzy').wrap_request(client.request)
+end
+-- If you're using nvim-lspconfig (here an example for Go):
+require('lspconfig').gopls.setup({on_attach = on_attach})
+-- If you're using the native LSP configuration API:
+vim.lsp.config('*' {on_attach = on_attach})
 ```
 
-In addition, the plugin creates the following commands:
+The plugin also creates the following commands:
 * `:LspDiagnostics <bufnr>`: list diagnostics from given buffer (use `0` for
   current buffer).
 * `:LspDiagnosticsAll`: list diagnostics from all buffers.

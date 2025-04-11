@@ -274,6 +274,16 @@ local function wrap_handler(handler)
   end
 end
 
+local function wrap_request(request)
+  return function(self, method, params, handler, bufnr)
+    if handlers[method] == nil then
+      return request(self, method, params, handler, bufnr)
+    end
+
+    return request(self, method, params, wrap_handler(handlers[method]), bufnr)
+  end
+end
+
 local function load_fzf_opts()
   local fzf_opts = {}
 
@@ -323,6 +333,9 @@ return {
   end,
   last_results = function()
     last_results_cmd()
+  end,
+  wrap_request = function(request)
+    return wrap_request(request)
   end,
   setup = setup,
 }
