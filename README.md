@@ -1,10 +1,12 @@
 # nvim-lspfuzzy
 
-This plugin makes the Neovim LSP client use
-[FZF](https://github.com/junegunn/fzf) to display results and navigate the code.
-It works by redefining your LSP handlers so that they call FZF.
+This plugin makes the Neovim LSP client use [FZF](https://github.com/junegunn/fzf) to display
+results and navigate the code. It works by redefining your LSP handlers so that they call FZF.
 
-**The plugin requires Neovim 0.6+.** For Neovim 0.5, use version `v0.1.0`.
+**The plugin works in Neovim < 0.11 only**. Unfortunately, Neovim 0.11 introduced a breaking change
+to LSP handlers that causes LSP methods to no longer trigger handlers (see [Neovim 0.11
+changelog](https://neovim.io/doc/user/news-0.11.html#_lsp)). If you're using Neovim 0.11 or above,
+I encourage you to find an alternative solution.
 
 ![demo](https://user-images.githubusercontent.com/23409060/188602802-456cc524-e723-4142-94b3-98df04bf4897.gif)
 
