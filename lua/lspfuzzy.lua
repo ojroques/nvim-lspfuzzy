@@ -65,7 +65,12 @@ local function fzf_to_lsp(entry)
 end
 
 local function jump_to_location(location)
-  vim.lsp.util.jump_to_location(location, offset_encoding)
+  local show_document = vim.lsp.util.show_document
+  if show_document then
+    show_document(location, offset_encoding, {focus = true})
+  else
+    vim.lsp.util.jump_to_location(location, offset_encoding)
+  end
   if type(opts.callback) == 'function' then
     opts.callback()
   end
