@@ -35,13 +35,16 @@ require('lspfuzzy').setup {}
 
 In addition, for Neovim 0.11 and above, you need to configure your LSP client:
 ```lua
-local on_attach = function(client, _)
-  client.request = require('lspfuzzy').wrap_request(client.request)
-end
--- If you're using nvim-lspconfig (here an example for Go):
-require('lspconfig').gopls.setup({on_attach = on_attach})
--- If you're using the native LSP configuration API:
-vim.lsp.config('*' {on_attach = on_attach})
+vim.api.nvim_create_autocmd('LspAttach', {
+   callback = function(args)
+     local client = vim.lsp.get_client_by_id(args.data.client_id)
+     if not client then
+       return
+     else
+       client.request = require('lspfuzzy').wrap_request(client.request)
+     end
+   end
+ })
 ```
 
 The plugin also creates the following commands:
