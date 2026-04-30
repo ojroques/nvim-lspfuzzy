@@ -281,7 +281,7 @@ end
 
 local function wrap_request(request)
   return function(self, method, params, handler, bufnr)
-    if handlers[method] == nil then
+    if not vim.tbl_contains(opts.methods, method) then
       return request(self, method, params, handler, bufnr)
     end
 
